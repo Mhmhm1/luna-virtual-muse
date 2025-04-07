@@ -18,7 +18,7 @@ const initialState: LunaState = {
   preferences: [],
   userName: '',
   lastInteractionTime: null,
-  recentResponses: [], // Initialize empty array to track recent responses
+  recentResponses: [], // Ensure this is initialized as an empty array
 };
 
 const LunaContext = createContext<LunaContextType | undefined>(undefined);
@@ -27,7 +27,17 @@ export const LunaProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [state, setState] = useState<LunaState>(() => {
     const savedState = localStorage.getItem('lunaState');
     if (savedState) {
-      return JSON.parse(savedState);
+      try {
+        const parsedState = JSON.parse(savedState);
+        // Ensure recentResponses is an array even if it was loaded from storage
+        return {
+          ...parsedState,
+          recentResponses: Array.isArray(parsedState.recentResponses) ? parsedState.recentResponses : []
+        };
+      } catch (e) {
+        console.error("Error parsing saved Luna state:", e);
+        return initialState;
+      }
     }
     return initialState;
   });
@@ -67,7 +77,8 @@ export const LunaProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ...prev,
       messages: [...prev.messages, lunaMessage],
       lastInteractionTime: Date.now(),
-      recentResponses: [...prev.recentResponses, lunaMessage.text].slice(-15) // Store last 15 responses
+      // Ensure we're spreading an array - add a safety check
+      recentResponses: [...(Array.isArray(prev.recentResponses) ? prev.recentResponses : []), lunaMessage.text].slice(-15) // Store last 15 responses
     }));
   };
 
@@ -128,7 +139,8 @@ export const LunaProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setState(prev => ({
         ...prev,
         messages: [...prev.messages, lunaMessage],
-        recentResponses: [...prev.recentResponses, lunaResponse].slice(-15) // Store last 15 responses
+        // Ensure we're spreading an array - add a safety check
+        recentResponses: [...(Array.isArray(prev.recentResponses) ? prev.recentResponses : []), lunaResponse].slice(-15) // Store last 15 responses
       }));
     }, 1000 + Math.random() * 1500); // Random delay between 1-2.5 seconds
   };
