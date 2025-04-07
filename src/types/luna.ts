@@ -19,4 +19,5 @@ export interface LunaState {
   preferences: UserPreference[];
   userName: string;
   lastInteractionTime: number | null;
+  recentResponses: string[]; // Track recently used responses to avoid repetition
 }

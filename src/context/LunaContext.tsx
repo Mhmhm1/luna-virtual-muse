@@ -18,6 +18,7 @@ const initialState: LunaState = {
   preferences: [],
   userName: '',
   lastInteractionTime: null,
+  recentResponses: [], // Initialize empty array to track recent responses
 };
 
 const LunaContext = createContext<LunaContextType | undefined>(undefined);
@@ -58,14 +59,15 @@ export const LunaProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const lunaMessage: Message = {
       id: Date.now().toString(),
       sender: 'luna',
-      text: generateConversationStarter(state.currentMood, state.userName),
+      text: generateConversationStarter(state.currentMood, state.userName, state.recentResponses),
       timestamp: Date.now()
     };
     
     setState(prev => ({
       ...prev,
       messages: [...prev.messages, lunaMessage],
-      lastInteractionTime: Date.now()
+      lastInteractionTime: Date.now(),
+      recentResponses: [...prev.recentResponses, lunaMessage.text].slice(-15) // Store last 15 responses
     }));
   };
 
@@ -112,7 +114,8 @@ export const LunaProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const lunaResponse = generateResponse(
         state.currentMood, 
         [...state.messages, userMessage],
-        state.userName
+        state.userName,
+        state.recentResponses
       );
       
       const lunaMessage: Message = {
@@ -124,7 +127,8 @@ export const LunaProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       setState(prev => ({
         ...prev,
-        messages: [...prev.messages, lunaMessage]
+        messages: [...prev.messages, lunaMessage],
+        recentResponses: [...prev.recentResponses, lunaResponse].slice(-15) // Store last 15 responses
       }));
     }, 1000 + Math.random() * 1500); // Random delay between 1-2.5 seconds
   };
