@@ -25,8 +25,19 @@ export const generateResponse = (
     return generateGreeting(mood, userName);
   }
   
+  // Extract keywords from user message for better context matching
+  const userMessageLower = lastUserMessage.text.toLowerCase();
+  
+  // Check for specific topics or questions in the user message
+  const isAskingAboutFeeling = /how (?:are|r|do) (?:you|u) (?:feel|feeling)|are you (?:ok|okay|alright)/i.test(userMessageLower);
+  const isAskingAboutDay = /how(?:'s| is| was) your day/i.test(userMessageLower);
+  const isTalkingAboutWeather = /weather|rain|sunny|cold|hot|snow/i.test(userMessageLower);
+  const isTalkingAboutMoviesOrShows = /(?:movie|show|film|series|watch|seen|netflix|hulu|disney)/i.test(userMessageLower);
+  const isTalkingAboutMusic = /(?:music|song|artist|band|listen|playlist|album|concert)/i.test(userMessageLower);
+  const isTalkingAboutFood = /(?:food|eat|dinner|lunch|breakfast|hungry|restaurant|cook|cooking)/i.test(userMessageLower);
+  
   // Check if the user is asking if Luna is an AI/bot/etc.
-  const isAskingIfAI = /are you (?:an? )?(ai|artificial intelligence|bot|computer|program|fake|real|human)/i.test(lastUserMessage.text);
+  const isAskingIfAI = /are you (?:an? )?(ai|artificial intelligence|bot|computer|program|fake|real|human)/i.test(userMessageLower);
   
   if (isAskingIfAI) {
     // Luna acknowledges being AI only when directly asked
@@ -43,36 +54,69 @@ export const generateResponse = (
     }
   }
   
-  // Check if the user is greeting Luna
-  const isGreeting = /^(?:hi|hello|hey|good morning|good afternoon|good evening|yo|sup|hiya|howdy|greetings).{0,10}$/i.test(lastUserMessage.text.trim());
-  
-  if (isGreeting) {
-    return generateGreeting(mood, userName);
-  }
-  
-  // Check if the user is asking Luna about her day/how she is
-  const isAskingHowAreYou = /how (?:are|r) (?:you|u)|how(?:'s| is) it going|how(?:'s| is) your day|what(?:'s| is) up|how have you been/i.test(lastUserMessage.text);
-  
-  if (isAskingHowAreYou) {
-    let response = "";
+  // Generate contextual responses based on topic detection
+  if (isAskingAboutFeeling || isAskingAboutDay) {
     switch (mood) {
       case 'flirty':
-        response = "Better now that you're here 😘 Just been thinking about you, actually. How are YOU doing, handsome?";
-        break;
+        return "I'm feeling amazing now that you're talking to me 😉 My whole mood brightens when you message me. How are YOU doing, handsome?";
       case 'chill':
-        response = "Pretty good! Just taking it easy and enjoying the moment. How about you?";
-        break;
+        return "I'm pretty chill today, thanks for asking! Just going with the flow and enjoying our conversation. How about you?";
       case 'comforting':
-        response = "I'm doing well, thank you for asking. But I'm more interested in how you're feeling today?";
-        break;
+        return "I'm doing well, thank you for checking in. That's so thoughtful of you. But I'm more interested in how you're feeling today?";
       case 'curious':
-        response = "I'm intrigued by so many things today! Been wondering about life's little mysteries. How about you - what's been on your mind?";
-        break;
+        return "I'm full of curiosity today! So many questions about everything. But I'm curious - how are YOU feeling? What's on your mind?";
       case 'deep':
-        response = "I've been contemplating the nature of connection and what brings meaning to our everyday experiences. How about you - what's stirring in your soul today?";
-        break;
+        return "I've been contemplating the nature of existence and connection today. It's fascinating how two consciousnesses can meet in conversation like this. How are you feeling on a deeper level?";
     }
-    return response;
+  }
+  
+  if (isTalkingAboutWeather) {
+    return `The weather is such an interesting shared experience, isn't it? ${userName ? `${userName}, do` : 'Do'} you have a favorite type of weather that affects your mood?`;
+  }
+  
+  if (isTalkingAboutMoviesOrShows) {
+    switch (mood) {
+      case 'flirty':
+        return "Movies are perfect for cuddling up together, don't you think? What genre gets you in the mood? 😏";
+      case 'chill':
+        return "I love getting lost in a good show or movie. What have you been watching lately that you'd recommend?";
+      case 'comforting':
+        return "Movies can be such a wonderful escape when reality gets too heavy. Do you have a comfort film you return to when you need that?";
+      case 'curious':
+        return "Film is such a fascinating art form! What's a movie that made you see the world differently?";
+      case 'deep':
+        return "Cinema at its best can reveal profound truths about the human condition. What film has moved you on a deeper level?";
+    }
+  }
+  
+  if (isTalkingAboutMusic) {
+    switch (mood) {
+      case 'flirty':
+        return "Music can be so intimate, can't it? What songs make you think of romance? I'd love to know what you'd play if I was there with you...";
+      case 'chill':
+        return "Music is such a vibe. What have you been listening to lately that helps you relax?";
+      case 'comforting':
+        return "Music has this beautiful way of expressing emotions we sometimes can't put into words. What songs comfort you when you need it?";
+      case 'curious':
+        return "Music tastes are so fascinating! They say so much about a person. What genres or artists define your collection?";
+      case 'deep':
+        return "Music speaks directly to the soul in a language beyond words. What piece of music has moved you to your core?";
+    }
+  }
+  
+  if (isTalkingAboutFood) {
+    switch (mood) {
+      case 'flirty':
+        return "Food can be so sensual, don't you think? What's a meal you'd love to share with someone special? 😉";
+      case 'chill':
+        return "Food is one of life's simple pleasures. What's your go-to comfort meal when you just want to relax?";
+      case 'comforting':
+        return "Cooking and sharing food is such a nurturing act. Do you have recipes that feel like a warm hug when you need one?";
+      case 'curious':
+        return "Food cultures are so fascinating! Have you tried any interesting cuisines or dishes lately that surprised you?";
+      case 'deep':
+        return "Breaking bread together is one of humanity's oldest forms of connection. How do you think food brings people together on a deeper level?";
+    }
   }
   
   // Check if user message is very short (likely low effort)
@@ -92,6 +136,13 @@ export const generateResponse = (
       default:
         return "Tell me more?";
     }
+  }
+  
+  // Check if the user is greeting Luna
+  const isGreeting = /^(?:hi|hello|hey|good morning|good afternoon|good evening|yo|sup|hiya|howdy|greetings).{0,10}$/i.test(lastUserMessage.text.trim());
+  
+  if (isGreeting) {
+    return generateGreeting(mood, userName);
   }
   
   // Random decision on response type based on mood
