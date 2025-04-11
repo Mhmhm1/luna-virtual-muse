@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { useHealthBot } from '@/context/HealthBotContext';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { PieChart, Pie, Cell, Legend, ResponsiveContainer } from 'recharts';
+import { ChartContainer } from '@/components/ui/chart';
+import { PieChart, Pie, Cell, Legend, Tooltip } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const HealthDataChart: React.FC = () => {
@@ -91,9 +91,7 @@ const HealthDataChart: React.FC = () => {
                   ))}
                 </Pie>
                 <Legend />
-                <ChartTooltip>
-                  <ChartTooltipContent />
-                </ChartTooltip>
+                <Tooltip />
               </PieChart>
             </ChartContainer>
           )}
@@ -141,3 +139,4 @@ const HealthDataChart: React.FC = () => {
 };
 
 export default HealthDataChart;
+
