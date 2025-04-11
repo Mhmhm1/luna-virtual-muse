@@ -13,6 +13,7 @@ type HealthBotContextType = {
   startAnalysis: () => void;
   selectDisease: (disease: Disease) => void;
   viewDoctorsList: (disease: Disease) => void;
+  viewPrescription: (disease: Disease) => void;
 };
 
 const initialState: HealthBotState = {
@@ -22,6 +23,8 @@ const initialState: HealthBotState = {
   loading: false,
   selectedDisease: null,
   viewingDoctors: false,
+  viewingPrescription: false,
+  analysis: null,
 };
 
 const HealthBotContext = createContext<HealthBotContextType | undefined>(undefined);
@@ -201,7 +204,9 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       ...prev,
       loading: true,
       selectedDisease: null,
-      viewingDoctors: false
+      viewingDoctors: false,
+      viewingPrescription: false,
+      analysis: null
     }));
     
     const analyzingMessage: Message = {
@@ -243,16 +248,15 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const analysisMessage: Message = {
         id: (Date.now() + 1).toString(),
         sender: 'healthbot',
-        text: "Based on your symptoms, here's my analysis:",
-        timestamp: Date.now(),
-        isAnalysis: true,
-        analysis
+        text: "Based on your symptoms, I've identified some possible conditions. Would you like to see more details about any of them?",
+        timestamp: Date.now()
       };
       
       setState(prev => ({
         ...prev,
         messages: [...prev.messages.filter(m => m.id !== analyzingMessage.id), analysisMessage],
-        loading: false
+        loading: false,
+        analysis: analysis
       }));
     }, 2500);
   };
@@ -261,19 +265,40 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setState(prev => ({
       ...prev,
       selectedDisease: disease,
-      viewingDoctors: false
+      viewingDoctors: false,
+      viewingPrescription: false
     }));
     
     const detailsMessage: Message = {
-      id: "disease-details",
+      id: Date.now().toString(),
       sender: 'healthbot',
-      text: "",
+      text: `I've found more information about ${disease.name}. Would you like to see the prescription details?`,
       timestamp: Date.now()
     };
     
     setState(prev => ({
       ...prev,
       messages: [...prev.messages, detailsMessage]
+    }));
+  };
+  
+  const viewPrescription = (disease: Disease) => {
+    setState(prev => ({
+      ...prev,
+      viewingPrescription: true,
+      viewingDoctors: false
+    }));
+    
+    const prescriptionMessage: Message = {
+      id: Date.now().toString(),
+      sender: 'healthbot',
+      text: `Here are the medication details for ${disease.name}. Would you like me to recommend a specialist?`,
+      timestamp: Date.now()
+    };
+    
+    setState(prev => ({
+      ...prev,
+      messages: [...prev.messages, prescriptionMessage]
     }));
   };
   
@@ -284,9 +309,9 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }));
     
     const doctorsMessage: Message = {
-      id: "doctors-list",
+      id: Date.now().toString(),
       sender: 'healthbot',
-      text: "",
+      text: `Here are some ${disease.specialist.title} specialists who can help with ${disease.name}.`,
       timestamp: Date.now()
     };
     
@@ -312,7 +337,9 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       lastInteractionTime: Date.now(),
       loading: false,
       selectedDisease: null,
-      viewingDoctors: false
+      viewingDoctors: false,
+      viewingPrescription: false,
+      analysis: null
     });
   };
   
@@ -327,7 +354,8 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         resetConversation,
         startAnalysis,
         selectDisease,
-        viewDoctorsList
+        viewDoctorsList,
+        viewPrescription
       }}
     >
       {children}

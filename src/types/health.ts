@@ -78,4 +78,6 @@ export interface HealthBotState {
   loading: boolean;
   selectedDisease?: Disease | null;
   viewingDoctors: boolean;
+  viewingPrescription: boolean;
+  analysis: Analysis | null;
 }
