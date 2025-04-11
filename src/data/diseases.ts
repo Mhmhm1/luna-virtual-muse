@@ -492,5 +492,11 @@ export const analyzeSymptomsForDiseases = (symptomIds: string[]): Disease[] => {
     .sort((a, b) => b.score - a.score);
   
   // Return top matches (up to 3)
-  return potentialMatches.slice(0, 3).map(item => item.disease);
+  return potentialMatches.slice(0, 3).map(item => {
+    // Add the match percentage to the disease object for display
+    return {
+      ...item.disease,
+      matchPercentage: Math.round(item.score * 100)
+    };
+  });
 };
