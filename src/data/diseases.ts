@@ -1,6 +1,257 @@
 
-import { Disease } from '../types/health';
+import { Disease, Doctor } from '../types/health';
 
+// Sample doctor data
+const doctors: Record<string, Doctor[]> = {
+  'neurologist': [
+    {
+      id: 'doc-1',
+      name: 'Dr. Sarah Kimani',
+      photoUrl: 'https://randomuser.me/api/portraits/women/25.jpg',
+      specialty: 'Neurologist',
+      hospital: 'Nairobi Hospital',
+      experience: '15 years',
+      licenseNumber: 'KEN-MD-23581',
+      phone: '+254 722 123 456',
+      bio: 'Specializes in migraines and headache disorders with advanced training in headache medicine.',
+      rating: 4.8,
+      available: true
+    },
+    {
+      id: 'doc-2',
+      name: 'Dr. James Omondi',
+      photoUrl: 'https://randomuser.me/api/portraits/men/32.jpg',
+      specialty: 'Neurologist',
+      hospital: 'Aga Khan University Hospital',
+      experience: '12 years',
+      licenseNumber: 'KEN-MD-31942',
+      phone: '+254 733 456 789',
+      bio: 'Focused on neurological disorders with special interest in migraine research.',
+      rating: 4.5,
+      available: true
+    },
+    {
+      id: 'doc-3',
+      name: 'Dr. Esther Wangari',
+      photoUrl: 'https://randomuser.me/api/portraits/women/45.jpg',
+      specialty: 'Neurologist',
+      hospital: 'Kenyatta National Hospital',
+      experience: '20 years',
+      licenseNumber: 'KEN-MD-19726',
+      phone: '+254 712 345 678',
+      bio: 'Extensive experience in treating complex neurological conditions and headache disorders.',
+      rating: 4.9,
+      available: false
+    }
+  ],
+  'pulmonologist': [
+    {
+      id: 'doc-4',
+      name: 'Dr. David Mutua',
+      photoUrl: 'https://randomuser.me/api/portraits/men/52.jpg',
+      specialty: 'Pulmonologist',
+      hospital: 'Nairobi West Hospital',
+      experience: '10 years',
+      licenseNumber: 'KEN-MD-27845',
+      phone: '+254 722 987 654',
+      bio: 'Specializes in respiratory diseases with particular focus on pneumonia and asthma.',
+      rating: 4.7,
+      available: true
+    },
+    {
+      id: 'doc-5',
+      name: 'Dr. Grace Mwangi',
+      photoUrl: 'https://randomuser.me/api/portraits/women/33.jpg',
+      specialty: 'Pulmonologist',
+      hospital: 'Mater Hospital',
+      experience: '14 years',
+      licenseNumber: 'KEN-MD-22176',
+      phone: '+254 733 876 543',
+      bio: 'Expert in managing complex respiratory conditions including pneumonia and tuberculosis.',
+      rating: 4.6,
+      available: true
+    },
+    {
+      id: 'doc-6',
+      name: 'Dr. Peter Kamau',
+      photoUrl: 'https://randomuser.me/api/portraits/men/41.jpg',
+      specialty: 'Pulmonologist',
+      hospital: 'MP Shah Hospital',
+      experience: '18 years',
+      licenseNumber: 'KEN-MD-18325',
+      phone: '+254 712 765 432',
+      bio: 'Renowned for his work in respiratory medicine with advanced training in critical care.',
+      rating: 4.9,
+      available: false
+    }
+  ],
+  'gastroenterologist': [
+    {
+      id: 'doc-7',
+      name: 'Dr. Mary Njeri',
+      photoUrl: 'https://randomuser.me/api/portraits/women/22.jpg',
+      specialty: 'Gastroenterologist',
+      hospital: 'Nairobi Hospital',
+      experience: '12 years',
+      licenseNumber: 'KEN-MD-24593',
+      phone: '+254 722 234 567',
+      bio: 'Specializes in digestive disorders with expertise in gastroenteritis and IBD.',
+      rating: 4.5,
+      available: true
+    },
+    {
+      id: 'doc-8',
+      name: 'Dr. John Kariuki',
+      photoUrl: 'https://randomuser.me/api/portraits/men/62.jpg',
+      specialty: 'Gastroenterologist',
+      hospital: 'Aga Khan University Hospital',
+      experience: '15 years',
+      licenseNumber: 'KEN-MD-21387',
+      phone: '+254 733 345 678',
+      bio: 'Expert in managing digestive system disorders with special interest in gastroenteritis research.',
+      rating: 4.7,
+      available: true
+    },
+    {
+      id: 'doc-9',
+      name: 'Dr. Mercy Wambui',
+      photoUrl: 'https://randomuser.me/api/portraits/women/58.jpg',
+      specialty: 'Gastroenterologist',
+      hospital: 'Karen Hospital',
+      experience: '17 years',
+      licenseNumber: 'KEN-MD-19435',
+      phone: '+254 712 456 789',
+      bio: 'Renowned for her work in managing complex digestive conditions and gut health.',
+      rating: 4.8,
+      available: true
+    }
+  ],
+  'rheumatologist': [
+    {
+      id: 'doc-10',
+      name: 'Dr. Daniel Kiprop',
+      photoUrl: 'https://randomuser.me/api/portraits/men/72.jpg',
+      specialty: 'Rheumatologist',
+      hospital: 'Nairobi Hospital',
+      experience: '16 years',
+      licenseNumber: 'KEN-MD-20134',
+      phone: '+254 722 345 678',
+      bio: 'Specializes in joint conditions with particular expertise in arthritis management.',
+      rating: 4.6,
+      available: true
+    },
+    {
+      id: 'doc-11',
+      name: 'Dr. Lucy Akinyi',
+      photoUrl: 'https://randomuser.me/api/portraits/women/67.jpg',
+      specialty: 'Rheumatologist',
+      hospital: 'Kenyatta National Hospital',
+      experience: '19 years',
+      licenseNumber: 'KEN-MD-18752',
+      phone: '+254 733 456 789',
+      bio: 'Expert in diagnosing and treating arthritis and other joint disorders with a focus on innovative therapies.',
+      rating: 4.9,
+      available: true
+    },
+    {
+      id: 'doc-12',
+      name: 'Dr. Robert Otieno',
+      photoUrl: 'https://randomuser.me/api/portraits/men/79.jpg',
+      specialty: 'Rheumatologist',
+      hospital: 'MP Shah Hospital',
+      experience: '14 years',
+      licenseNumber: 'KEN-MD-22964',
+      phone: '+254 712 567 890',
+      bio: 'Focused on musculoskeletal disorders with advanced training in arthritis and joint pain management.',
+      rating: 4.7,
+      available: false
+    }
+  ],
+  'allergist': [
+    {
+      id: 'doc-13',
+      name: 'Dr. Faith Wanjiku',
+      photoUrl: 'https://randomuser.me/api/portraits/women/28.jpg',
+      specialty: 'Allergist & Immunologist',
+      hospital: 'Aga Khan University Hospital',
+      experience: '11 years',
+      licenseNumber: 'KEN-MD-25476',
+      phone: '+254 722 456 789',
+      bio: 'Specializes in allergic conditions with expertise in managing complex allergic reactions.',
+      rating: 4.5,
+      available: true
+    },
+    {
+      id: 'doc-14',
+      name: 'Dr. Michael Maina',
+      photoUrl: 'https://randomuser.me/api/portraits/men/29.jpg',
+      specialty: 'Allergist & Immunologist',
+      hospital: 'Nairobi Hospital',
+      experience: '13 years',
+      licenseNumber: 'KEN-MD-23748',
+      phone: '+254 733 567 890',
+      bio: 'Expert in diagnosing and treating allergic disorders with focus on patient education and prevention.',
+      rating: 4.6,
+      available: true
+    },
+    {
+      id: 'doc-15',
+      name: 'Dr. Joyce Kamau',
+      photoUrl: 'https://randomuser.me/api/portraits/women/38.jpg',
+      specialty: 'Allergist & Immunologist',
+      hospital: 'Gertrude's Children's Hospital',
+      experience: '15 years',
+      licenseNumber: 'KEN-MD-21593',
+      phone: '+254 712 678 901',
+      bio: 'Renowned for her work in pediatric allergies with special interest in managing allergic reactions in children.',
+      rating: 4.8,
+      available: true
+    }
+  ],
+  'general-practitioner': [
+    {
+      id: 'doc-16',
+      name: 'Dr. Samuel Otieno',
+      photoUrl: 'https://randomuser.me/api/portraits/men/42.jpg',
+      specialty: 'General Practitioner',
+      hospital: 'Nairobi West Hospital',
+      experience: '9 years',
+      licenseNumber: 'KEN-MD-26985',
+      phone: '+254 722 567 890',
+      bio: 'Comprehensive primary care provider with experience in managing common illnesses including colds and flu.',
+      rating: 4.4,
+      available: true
+    },
+    {
+      id: 'doc-17',
+      name: 'Dr. Ruth Nyambura',
+      photoUrl: 'https://randomuser.me/api/portraits/women/47.jpg',
+      specialty: 'General Practitioner',
+      hospital: 'Coptic Hospital',
+      experience: '11 years',
+      licenseNumber: 'KEN-MD-24815',
+      phone: '+254 733 678 901',
+      bio: 'Primary care physician with special interest in preventive medicine and common respiratory conditions.',
+      rating: 4.6,
+      available: true
+    },
+    {
+      id: 'doc-18',
+      name: 'Dr. George Mwangi',
+      photoUrl: 'https://randomuser.me/api/portraits/men/55.jpg',
+      specialty: 'General Practitioner',
+      hospital: 'Karen Hospital',
+      experience: '14 years',
+      licenseNumber: 'KEN-MD-22137',
+      phone: '+254 712 789 012',
+      bio: 'Experienced family doctor with expertise in managing common ailments and providing holistic care.',
+      rating: 4.7,
+      available: false
+    }
+  ]
+};
+
+// Update the disease data to include doctor recommendations
 export const diseases: Disease[] = [
   {
     id: 'common-cold',
@@ -26,7 +277,8 @@ export const diseases: Disease[] = [
     specialist: {
       title: 'General Practitioner',
       field: 'Primary Care',
-      description: 'A doctor who treats acute and chronic illnesses and provides preventive care.'
+      description: 'A doctor who treats acute and chronic illnesses and provides preventive care.',
+      recommendedDoctors: doctors['general-practitioner']
     },
     severity: 'mild'
   },
@@ -54,7 +306,8 @@ export const diseases: Disease[] = [
     specialist: {
       title: 'General Practitioner',
       field: 'Primary Care',
-      description: 'A doctor who treats acute and chronic illnesses and provides preventive care.'
+      description: 'A doctor who treats acute and chronic illnesses and provides preventive care.',
+      recommendedDoctors: doctors['general-practitioner']
     },
     severity: 'moderate'
   },
@@ -82,7 +335,8 @@ export const diseases: Disease[] = [
     specialist: {
       title: 'Neurologist',
       field: 'Neurology',
-      description: 'A specialist who diagnoses and treats disorders of the nervous system, including the brain, spinal cord, and nerves.'
+      description: 'A specialist who diagnoses and treats disorders of the nervous system, including the brain, spinal cord, and nerves.',
+      recommendedDoctors: doctors['neurologist']
     },
     severity: 'moderate'
   },
@@ -110,7 +364,8 @@ export const diseases: Disease[] = [
     specialist: {
       title: 'Pulmonologist',
       field: 'Respiratory Medicine',
-      description: 'A specialist who treats conditions affecting the respiratory system, including the lungs and breathing.'
+      description: 'A specialist who treats conditions affecting the respiratory system, including the lungs and breathing.',
+      recommendedDoctors: doctors['pulmonologist']
     },
     severity: 'severe'
   },
@@ -138,7 +393,8 @@ export const diseases: Disease[] = [
     specialist: {
       title: 'Gastroenterologist',
       field: 'Gastroenterology',
-      description: 'A specialist who diagnoses and treats conditions affecting the digestive system.'
+      description: 'A specialist who diagnoses and treats conditions affecting the digestive system.',
+      recommendedDoctors: doctors['gastroenterologist']
     },
     severity: 'moderate'
   },
@@ -166,7 +422,8 @@ export const diseases: Disease[] = [
     specialist: {
       title: 'Rheumatologist',
       field: 'Rheumatology',
-      description: 'A specialist who diagnoses and treats arthritis and other diseases of the joints, muscles, and bones.'
+      description: 'A specialist who diagnoses and treats arthritis and other diseases of the joints, muscles, and bones.',
+      recommendedDoctors: doctors['rheumatologist']
     },
     severity: 'moderate'
   },
@@ -194,7 +451,8 @@ export const diseases: Disease[] = [
     specialist: {
       title: 'Allergist',
       field: 'Allergy and Immunology',
-      description: 'A specialist who diagnoses and treats allergies and other problems with the immune system.'
+      description: 'A specialist who diagnoses and treats allergies and other problems with the immune system.',
+      recommendedDoctors: doctors['allergist']
     },
     severity: 'mild'
   }

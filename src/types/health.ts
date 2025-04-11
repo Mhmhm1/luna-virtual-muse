@@ -1,10 +1,10 @@
 
 export type BodyCategory = 
-  | 'head' 
-  | 'chest' 
-  | 'abdomen' 
-  | 'limbs' 
-  | 'skin' 
+  | 'neurological' 
+  | 'respiratory' 
+  | 'digestive' 
+  | 'musculoskeletal' 
+  | 'dermatological' 
   | 'general';
 
 export interface Symptom {
@@ -14,14 +14,18 @@ export interface Symptom {
   description: string;
 }
 
-export interface Disease {
+export interface Doctor {
   id: string;
   name: string;
-  description: string;
-  commonSymptoms: string[]; // Array of symptom IDs
-  medications: Medication[];
-  specialist: Specialist;
-  severity: 'mild' | 'moderate' | 'severe';
+  photoUrl: string;
+  specialty: string;
+  hospital: string;
+  experience: string;
+  licenseNumber: string;
+  phone: string;
+  bio: string;
+  rating: number;
+  available: boolean;
 }
 
 export interface Medication {
@@ -36,6 +40,18 @@ export interface Specialist {
   title: string;
   field: string;
   description: string;
+  recommendedDoctors: Doctor[];
+}
+
+export interface Disease {
+  id: string;
+  name: string;
+  description: string;
+  commonSymptoms: string[]; // Array of symptom IDs
+  medications: Medication[];
+  specialist: Specialist;
+  severity: 'mild' | 'moderate' | 'severe';
+  matchPercentage?: number; // Added for display in UI
 }
 
 export interface Analysis {
@@ -60,4 +76,6 @@ export interface HealthBotState {
   selectedSymptoms: Symptom[];
   lastInteractionTime: number | null;
   loading: boolean;
+  selectedDisease?: Disease | null;
+  viewingDoctors: boolean;
 }

@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Message, Symptom, HealthBotState, Analysis } from '../types/health';
+import { Message, Symptom, HealthBotState, Analysis, Disease, Doctor } from '../types/health';
 import { symptoms, getSymptomById } from '../data/symptoms';
 import { analyzeSymptomsForDiseases } from '../data/diseases';
 
@@ -12,6 +12,8 @@ type HealthBotContextType = {
   clearSymptoms: () => void;
   resetConversation: () => void;
   startAnalysis: () => void;
+  selectDisease: (disease: Disease) => void;
+  viewDoctorsList: (disease: Disease) => void;
 };
 
 const initialState: HealthBotState = {
@@ -19,6 +21,8 @@ const initialState: HealthBotState = {
   selectedSymptoms: [],
   lastInteractionTime: null,
   loading: false,
+  selectedDisease: null,
+  viewingDoctors: false,
 };
 
 const HealthBotContext = createContext<HealthBotContextType | undefined>(undefined);
@@ -47,7 +51,7 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const welcomeMessage: Message = {
         id: Date.now().toString(),
         sender: 'healthbot',
-        text: "Hello! I'm your health assistant. I can help analyze your symptoms and provide potential causes and recommendations. Please select your symptoms or type them out. Note: This is not a substitute for professional medical advice.",
+        text: "Hello! I'm your MediAssist Pro assistant. I can help analyze your symptoms and provide potential causes, medications, and specialist recommendations. Please select your symptoms using the categories below or type them out. Remember: This is not a substitute for professional medical advice.",
         timestamp: Date.now()
       };
       
@@ -220,7 +224,9 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     
     setState(prev => ({
       ...prev,
-      loading: true
+      loading: true,
+      selectedDisease: null,
+      viewingDoctors: false
     }));
     
     // Add a message to show we're analyzing
@@ -244,50 +250,33 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       // Run analysis
       const possibleDiseases = analyzeSymptomsForDiseases(symptomIds);
       
+      // Add match percentages to diseases for display
+      const diseasesWithPercentages = possibleDiseases.map((disease, index) => {
+        // Calculate a percentage based on position (first is highest)
+        const basePercentage = 80 - (index * 15);
+        const randomOffset = Math.floor(Math.random() * 10);
+        const percentage = Math.min(95, Math.max(30, basePercentage + randomOffset));
+        
+        return {
+          ...disease,
+          matchPercentage: percentage
+        };
+      });
+      
       // Create analysis object
       const analysis: Analysis = {
-        possibleDiseases,
-        confidence: possibleDiseases.length > 0 ? 0.7 : 0.3,
-        recommendation: possibleDiseases.length > 0 
+        possibleDiseases: diseasesWithPercentages,
+        confidence: diseasesWithPercentages.length > 0 ? 0.7 : 0.3,
+        recommendation: diseasesWithPercentages.length > 0 
           ? "Based on your symptoms, you should consider consulting a healthcare professional." 
           : "Your symptoms don't clearly match any specific condition in my database. Please consult with a healthcare professional for a proper diagnosis."
       };
       
-      // Format analysis results
-      let analysisText = "";
-      
-      if (possibleDiseases.length > 0) {
-        analysisText = "Based on the symptoms you described, here are some potential conditions that might match your symptoms:\n\n";
-        
-        possibleDiseases.forEach((disease, index) => {
-          analysisText += `${index + 1}. **${disease.name}**\n`;
-          analysisText += `${disease.description}\n\n`;
-          
-          // Add medication info
-          analysisText += "Potential treatments include:\n";
-          disease.medications.forEach(med => {
-            analysisText += `• **${med.name}**: ${med.dosage}, ${med.frequency} for ${med.duration}.\n`;
-            analysisText += `  Side effects: ${med.sideEffects.join(', ')}.\n\n`;
-          });
-          
-          // Add specialist recommendation
-          analysisText += `**Specialist Recommendation**: ${disease.specialist.title} (${disease.specialist.field})\n`;
-          analysisText += `${disease.specialist.description}\n\n`;
-        });
-        
-        analysisText += "**IMPORTANT**: This analysis is not a diagnosis. Please consult with a healthcare professional for proper evaluation and treatment.";
-      } else {
-        analysisText = "I couldn't find a clear match for your combination of symptoms in my database. This could mean:\n\n";
-        analysisText += "1. Your condition might be less common\n";
-        analysisText += "2. The combination of symptoms could be related to multiple conditions\n";
-        analysisText += "3. More information might be needed for a more accurate analysis\n\n";
-        analysisText += "I recommend consulting with a healthcare professional for a proper diagnosis. Would you like to add more symptoms for me to analyze?";
-      }
-      
+      // Create analysis message
       const analysisMessage: Message = {
         id: (Date.now() + 1).toString(),
         sender: 'healthbot',
-        text: analysisText,
+        text: "Here's my analysis based on your symptoms.",
         timestamp: Date.now(),
         isAnalysis: true,
         analysis
@@ -299,6 +288,47 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         loading: false
       }));
     }, 2500);
+  };
+  
+  const selectDisease = (disease: Disease) => {
+    setState(prev => ({
+      ...prev,
+      selectedDisease: disease,
+      viewingDoctors: false
+    }));
+    
+    // Create a special "disease details" message
+    const detailsMessage: Message = {
+      id: "disease-details", // Special ID to identify this message
+      sender: 'healthbot',
+      text: "", // Content will be rendered from the component
+      timestamp: Date.now()
+    };
+    
+    setState(prev => ({
+      ...prev,
+      messages: [...prev.messages, detailsMessage]
+    }));
+  };
+  
+  const viewDoctorsList = (disease: Disease) => {
+    setState(prev => ({
+      ...prev,
+      viewingDoctors: true
+    }));
+    
+    // Create a special "doctors list" message
+    const doctorsMessage: Message = {
+      id: "doctors-list", // Special ID to identify this message
+      sender: 'healthbot',
+      text: "", // Content will be rendered from the component
+      timestamp: Date.now()
+    };
+    
+    setState(prev => ({
+      ...prev,
+      messages: [...prev.messages, doctorsMessage]
+    }));
   };
   
   const resetConversation = () => {
@@ -316,7 +346,9 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       messages: [welcomeMessage],
       selectedSymptoms: [],
       lastInteractionTime: Date.now(),
-      loading: false
+      loading: false,
+      selectedDisease: null,
+      viewingDoctors: false
     });
   };
   
@@ -329,7 +361,9 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         removeSymptom, 
         clearSymptoms, 
         resetConversation,
-        startAnalysis
+        startAnalysis,
+        selectDisease,
+        viewDoctorsList
       }}
     >
       {children}

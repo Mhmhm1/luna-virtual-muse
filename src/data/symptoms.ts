@@ -1,187 +1,150 @@
-
 import { Symptom, BodyCategory } from '../types/health';
 
 export const symptoms: Symptom[] = [
-  // Head symptoms
   {
     id: 'headache',
     name: 'Headache',
-    category: 'head',
-    description: 'Pain in the head varying in intensity and location'
-  },
-  {
-    id: 'dizziness',
-    name: 'Dizziness',
-    category: 'head',
-    description: 'Feeling lightheaded or unsteady'
+    category: 'neurological',
+    description: 'A continuous pain in the head.'
   },
   {
     id: 'blurred-vision',
     name: 'Blurred Vision',
-    category: 'head',
-    description: 'Inability to see fine details'
+    category: 'neurological',
+    description: 'Loss of sharpness of eyesight, making objects appear out of focus.'
   },
   {
-    id: 'earache',
-    name: 'Earache',
-    category: 'head',
-    description: 'Pain in one or both ears'
+    id: 'dizziness',
+    name: 'Dizziness',
+    category: 'neurological',
+    description: 'A sensation of spinning around and losing one\'s balance.'
   },
   {
     id: 'sore-throat',
     name: 'Sore Throat',
-    category: 'head',
-    description: 'Pain or irritation in the throat that worsens when swallowing'
-  },
-  {
-    id: 'runny-nose',
-    name: 'Runny Nose',
-    category: 'head',
-    description: 'Excess discharge of fluid from the nose'
-  },
-  
-  // Chest symptoms
-  {
-    id: 'chest-pain',
-    name: 'Chest Pain',
-    category: 'chest',
-    description: 'Discomfort or pain in the chest area'
-  },
-  {
-    id: 'shortness-of-breath',
-    name: 'Shortness of Breath',
-    category: 'chest',
-    description: 'Difficulty breathing or feeling like you can\'t get enough air'
+    category: 'respiratory',
+    description: 'Pain or irritation in the throat.'
   },
   {
     id: 'cough',
     name: 'Cough',
-    category: 'chest',
-    description: 'Sudden expulsion of air from the lungs'
+    category: 'respiratory',
+    description: 'A voluntary or involuntary act that clears the throat and breathing passage of foreign particles, fluids, mucus, or irritants.'
   },
   {
-    id: 'rapid-heartbeat',
-    name: 'Rapid Heartbeat',
-    category: 'chest',
-    description: 'Heart beating faster than normal'
+    id: 'shortness-of-breath',
+    name: 'Shortness of Breath',
+    category: 'respiratory',
+    description: 'Difficulty in breathing or feeling like you are not getting enough air.'
   },
-  
-  // Abdomen symptoms
   {
-    id: 'stomach-pain',
-    name: 'Stomach Pain',
-    category: 'abdomen',
-    description: 'Pain in the abdominal region'
+    id: 'chest-pain',
+    name: 'Chest Pain',
+    category: 'respiratory',
+    description: 'Pain or discomfort in the chest, typically felt in the front of the body from the neck to the upper abdomen.'
   },
   {
     id: 'nausea',
     name: 'Nausea',
-    category: 'abdomen',
-    description: 'Feeling of sickness with an inclination to vomit'
+    category: 'digestive',
+    description: 'A feeling of sickness with an inclination to vomit.'
   },
   {
     id: 'diarrhea',
     name: 'Diarrhea',
-    category: 'abdomen',
-    description: 'Loose, watery bowel movements'
+    category: 'digestive',
+    description: 'Frequent and liquid bowel movements.'
   },
   {
-    id: 'constipation',
-    name: 'Constipation',
-    category: 'abdomen',
-    description: 'Difficulty passing stool or infrequent bowel movements'
+    id: 'stomach-pain',
+    name: 'Stomach Pain',
+    category: 'digestive',
+    description: 'Pain or discomfort felt in the abdomen.'
   },
-  {
-    id: 'bloating',
-    name: 'Bloating',
-    category: 'abdomen',
-    description: 'Feeling of fullness or swelling in the abdomen'
-  },
-  
-  // Limbs symptoms
   {
     id: 'joint-pain',
     name: 'Joint Pain',
-    category: 'limbs',
-    description: 'Discomfort in one or more joints'
-  },
-  {
-    id: 'muscle-weakness',
-    name: 'Muscle Weakness',
-    category: 'limbs',
-    description: 'Reduced strength in one or more muscles'
+    category: 'musculoskeletal',
+    description: 'Discomfort, pain, or ache in one or more joints.'
   },
   {
     id: 'swelling',
     name: 'Swelling',
-    category: 'limbs',
-    description: 'Enlargement of a body part due to fluid accumulation'
+    category: 'musculoskeletal',
+    description: 'Abnormal enlargement of a part of the body, typically as a result of fluid accumulation or inflammation.'
   },
   {
-    id: 'numbness',
-    name: 'Numbness',
-    category: 'limbs',
-    description: 'Loss of sensation in a body part'
+    id: 'stiffness',
+    name: 'Stiffness',
+    category: 'musculoskeletal',
+    description: 'Difficulty moving a joint or muscle.'
   },
-  
-  // Skin symptoms
+  {
+    id: 'reduced-range-of-motion',
+    name: 'Reduced Range of Motion',
+    category: 'musculoskeletal',
+    description: 'Limitation in the extent to which a joint can be moved.'
+  },
   {
     id: 'rash',
     name: 'Rash',
-    category: 'skin',
-    description: 'Abnormal change in skin color or texture'
+    category: 'dermatological',
+    description: 'A change of the skin which affects its color, appearance, or texture.'
   },
   {
     id: 'itching',
     name: 'Itching',
-    category: 'skin',
-    description: 'Irritating sensation causing a desire to scratch'
+    category: 'dermatological',
+    description: 'An uncomfortable, irritating sensation that makes you want to scratch.'
   },
   {
-    id: 'bruising',
-    name: 'Bruising',
-    category: 'skin',
-    description: 'Discoloration of the skin due to broken blood vessels'
+    id: 'runny-nose',
+    name: 'Runny Nose',
+    category: 'dermatological',
+    description: 'Nasal discharge.'
   },
-  
-  // General symptoms
   {
     id: 'fever',
     name: 'Fever',
     category: 'general',
-    description: 'Elevated body temperature'
+    description: 'An abnormally high body temperature, usually accompanied by shivering, headache, and in severe instances, delirium.'
   },
   {
     id: 'fatigue',
     name: 'Fatigue',
     category: 'general',
-    description: 'Feeling of tiredness or exhaustion'
-  },
-  {
-    id: 'loss-of-appetite',
-    name: 'Loss of Appetite',
-    category: 'general',
-    description: 'Reduced desire to eat'
-  },
-  {
-    id: 'weight-loss',
-    name: 'Weight Loss',
-    category: 'general',
-    description: 'Unintentional decrease in body weight'
+    description: 'A feeling of tiredness or lack of energy.'
   },
   {
     id: 'chills',
     name: 'Chills',
     category: 'general',
-    description: 'Feeling of coldness with shivering'
-  },
-  {
-    id: 'night-sweats',
-    name: 'Night Sweats',
-    category: 'general',
-    description: 'Excessive sweating during sleep'
+    description: 'A sensation of cold accompanied by shivering.'
   }
 ];
+
+export const getAllCategories = (): BodyCategory[] => {
+  return ['neurological', 'respiratory', 'digestive', 'musculoskeletal', 'dermatological', 'general'];
+};
+
+export const getCategoryLabel = (category: BodyCategory): string => {
+  switch (category) {
+    case 'neurological':
+      return 'Brain & Nerves';
+    case 'respiratory':
+      return 'Lungs & Breathing';
+    case 'digestive':
+      return 'Stomach & Digestion';
+    case 'musculoskeletal':
+      return 'Muscles & Joints';
+    case 'dermatological':
+      return 'Skin & Tissue';
+    case 'general':
+      return 'General Symptoms';
+    default:
+      return category;
+  }
+};
 
 export const getSymptomsByCategory = (category: BodyCategory): Symptom[] => {
   return symptoms.filter(symptom => symptom.category === category);
@@ -189,21 +152,4 @@ export const getSymptomsByCategory = (category: BodyCategory): Symptom[] => {
 
 export const getSymptomById = (id: string): Symptom | undefined => {
   return symptoms.find(symptom => symptom.id === id);
-};
-
-export const getAllCategories = (): BodyCategory[] => {
-  return ['head', 'chest', 'abdomen', 'limbs', 'skin', 'general'];
-};
-
-export const getCategoryLabel = (category: BodyCategory): string => {
-  const labels: Record<BodyCategory, string> = {
-    head: 'Head & Neck',
-    chest: 'Chest & Respiratory',
-    abdomen: 'Abdomen & Digestive',
-    limbs: 'Arms & Legs',
-    skin: 'Skin & Hair',
-    general: 'General Symptoms'
-  };
-  
-  return labels[category];
 };
