@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { XIcon, Brain, Lungs, Stomach, Bone, Footprints, HeartPulse } from 'lucide-react';
+import { XIcon, Brain, Stethoscope, HeartPulse, Bone, Footprints } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useHealthBot } from '@/context/HealthBotContext';
 import { Symptom } from '@/types/health';
@@ -18,9 +18,9 @@ const SymptomSelector: React.FC = () => {
       case 'neurological':
         return <Brain className="h-4 w-4" />;
       case 'respiratory':
-        return <Lungs className="h-4 w-4" />;
+        return <Stethoscope className="h-4 w-4" />;
       case 'digestive':
-        return <Stomach className="h-4 w-4" />;
+        return <HeartPulse className="h-4 w-4" />;
       case 'musculoskeletal':
         return <Bone className="h-4 w-4" />;
       case 'dermatological':
