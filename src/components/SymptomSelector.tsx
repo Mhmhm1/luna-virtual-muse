@@ -50,7 +50,7 @@ const SymptomSelector: React.FC = () => {
         
         <div className="flex flex-wrap gap-2 mb-3 min-h-[40px]">
           {state.selectedSymptoms.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Select symptoms you're experiencing from the categories below.</p>
+            <p className="text-sm text-muted-foreground">No symptoms selected. Select from the categories below.</p>
           ) : (
             state.selectedSymptoms.map(symptom => (
               <Badge key={symptom.id} className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200 py-1 px-2">
@@ -71,13 +71,13 @@ const SymptomSelector: React.FC = () => {
             className="w-full bg-emerald-600 hover:bg-emerald-700 h-10" 
             onClick={startAnalysis}
           >
-            Analyze My Symptoms
+            Analyze Symptoms
           </Button>
         )}
       </div>
       
       <div>
-        <h3 className="font-medium mb-2 text-emerald-800">What are you feeling today?</h3>
+        <h3 className="font-medium mb-2 text-emerald-800">Add Symptoms</h3>
         <Tabs defaultValue={activeCategory} onValueChange={(value) => setActiveCategory(value as any)}>
           <TabsList className="w-full h-auto flex flex-wrap justify-start mb-2 bg-emerald-50 p-1">
             {getAllCategories().map(category => (
