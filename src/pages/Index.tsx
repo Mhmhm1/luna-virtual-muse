@@ -1,16 +1,15 @@
 
 import React, { useRef, useEffect } from 'react';
-import { LunaProvider, useLuna } from '@/context/LunaContext';
-import ChatHeader from '@/components/ChatHeader';
-import ChatMessage from '@/components/ChatMessage';
-import ChatInput from '@/components/ChatInput';
-import MoodSelector from '@/components/MoodSelector';
-import EmptyConversation from '@/components/EmptyConversation';
-import SettingsDialog from '@/components/SettingsDialog';
-import { Settings } from 'lucide-react';
+import { HealthBotProvider, useHealthBot } from '@/context/HealthBotContext';
+import HealthChatHeader from '@/components/HealthChatHeader';
+import HealthChatMessage from '@/components/HealthChatMessage';
+import HealthChatInput from '@/components/HealthChatInput';
+import SymptomSelector from '@/components/SymptomSelector';
+import { Button } from '@/components/ui/button';
+import { RotateCcw } from 'lucide-react';
 
-const ChatContainer = () => {
-  const { state, sendMessage, setMood, lunaStartConversation } = useLuna();
+const HealthChatContainer = () => {
+  const { state, resetConversation } = useHealthBot();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   // Scroll to bottom when messages change
@@ -18,50 +17,38 @@ const ChatContainer = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [state.messages]);
   
-  const handleSendMessage = (text: string) => {
-    sendMessage(text);
-  };
-  
   return (
     <div className="max-w-2xl mx-auto h-screen flex flex-col p-4">
       <div className="mb-4 flex items-center justify-end">
-        <SettingsDialog>
-          <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
-            <Settings className="w-4 h-4" /> Settings
-          </button>
-        </SettingsDialog>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="text-sm text-muted-foreground flex items-center gap-1"
+          onClick={resetConversation}
+        >
+          <RotateCcw className="w-3 h-3" /> Reset Conversation
+        </Button>
       </div>
       
       <div className="flex-1 flex flex-col bg-white bg-opacity-60 backdrop-blur-md rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-        <ChatHeader currentMood={state.currentMood} userName={state.userName} />
+        <HealthChatHeader />
         
-        <MoodSelector 
-          currentMood={state.currentMood} 
-          onSelectMood={setMood} 
-        />
-        
-        {state.messages.length === 0 ? (
-          <EmptyConversation 
-            userName={state.userName} 
-            onStartConversation={lunaStartConversation}
-          />
-        ) : (
-          <div className="flex-1 overflow-y-auto p-4 scroll-hidden">
-            <div className="flex flex-col">
-              {state.messages.map((message, index) => (
-                <ChatMessage 
-                  key={message.id} 
-                  message={message} 
-                  isLastMessage={index === state.messages.length - 1}
-                />
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
+        <div className="flex-1 overflow-y-auto p-4 scroll-hidden bg-gray-50">
+          <div className="flex flex-col">
+            {state.messages.map((message) => (
+              <HealthChatMessage 
+                key={message.id} 
+                message={message} 
+              />
+            ))}
+            <div ref={messagesEndRef} />
           </div>
-        )}
+        </div>
+        
+        <SymptomSelector />
         
         <div className="p-4 bg-white bg-opacity-70 border-t border-gray-100">
-          <ChatInput onSendMessage={handleSendMessage} />
+          <HealthChatInput />
         </div>
       </div>
     </div>
@@ -70,11 +57,11 @@ const ChatContainer = () => {
 
 const Index = () => {
   return (
-    <LunaProvider>
-      <div className="min-h-screen bg-gradient-radial from-luna-lavender via-white to-white">
-        <ChatContainer />
+    <HealthBotProvider>
+      <div className="min-h-screen bg-gradient-radial from-emerald-50 via-white to-white">
+        <HealthChatContainer />
       </div>
-    </LunaProvider>
+    </HealthBotProvider>
   );
 };
 
