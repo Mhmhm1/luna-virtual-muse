@@ -9,7 +9,7 @@ import { Symptom } from '@/types/health';
 import { getAllCategories, getCategoryLabel, getSymptomsByCategory } from '@/data/symptoms';
 
 const SymptomSelector: React.FC = () => {
-  const { state, selectSymptom, removeSymptom, clearSymptoms, startAnalysis } = useHealthBot();
+  const { state, selectSymptom, removeSymptom, clearSymptoms, startAnalysis, sendMessage } = useHealthBot();
   const [activeCategory, setActiveCategory] = useState(getAllCategories()[0]);
 
   // Define icons for each category
@@ -29,6 +29,19 @@ const SymptomSelector: React.FC = () => {
       default:
         return <HeartPulse className="h-4 w-4" />;
     }
+  };
+
+  const handleSymptomSelection = (symptom: Symptom) => {
+    selectSymptom(symptom);
+    // Create a message that looks like it came from the user
+    const symptomMessage = `I'm experiencing ${symptom.name}.`;
+    sendMessage(symptomMessage);
+  };
+  
+  const handleAnalyzeClick = () => {
+    // Create a message that looks like the user requested analysis
+    sendMessage("Can you analyze these symptoms for me?");
+    setTimeout(() => startAnalysis(), 800);
   };
   
   return (
@@ -69,7 +82,7 @@ const SymptomSelector: React.FC = () => {
         {state.selectedSymptoms.length > 0 && (
           <Button 
             className="w-full bg-emerald-600 hover:bg-emerald-700 h-10" 
-            onClick={startAnalysis}
+            onClick={handleAnalyzeClick}
           >
             Analyze Symptoms
           </Button>
@@ -100,7 +113,7 @@ const SymptomSelector: React.FC = () => {
                     key={symptom.id}
                     symptom={symptom}
                     isSelected={state.selectedSymptoms.some(s => s.id === symptom.id)}
-                    onSelect={selectSymptom}
+                    onSelect={handleSymptomSelection}
                   />
                 ))}
               </div>

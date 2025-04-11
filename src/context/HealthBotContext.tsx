@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Message, Symptom, HealthBotState, Analysis, Disease, Doctor } from '../types/health';
 import { symptoms, getSymptomById } from '../data/symptoms';
@@ -45,13 +44,12 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     localStorage.setItem('healthBotState', JSON.stringify(state));
   }, [state]);
 
-  // Add welcome message on first load
   useEffect(() => {
     if (state.messages.length === 0) {
       const welcomeMessage: Message = {
         id: Date.now().toString(),
         sender: 'healthbot',
-        text: "Hello! I'm your MediAssist Pro assistant. I can help analyze your symptoms and provide potential causes, medications, and specialist recommendations. Please select your symptoms using the categories below or type them out. Remember: This is not a substitute for professional medical advice.",
+        text: "Hello! I'm your MediAssist Pro assistant. How are you feeling today? Please select your symptoms or describe them to me.",
         timestamp: Date.now()
       };
       
@@ -64,7 +62,6 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, []);
 
   const sendMessage = (text: string) => {
-    // Create user message
     const userMessage: Message = {
       id: Date.now().toString(),
       sender: 'user',
@@ -72,7 +69,6 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       timestamp: Date.now()
     };
     
-    // Update state with the user message
     setState(prev => ({
       ...prev,
       messages: [...prev.messages, userMessage],
@@ -80,22 +76,25 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       loading: true
     }));
     
-    // Process the message to look for symptoms
-    setTimeout(() => {
-      processUserMessage(text);
-    }, 1000);
+    if (!text.includes("I'm experiencing") && !text.includes("Can you analyze these symptoms")) {
+      setTimeout(() => {
+        processUserMessage(text);
+      }, 1000);
+    } else {
+      setState(prev => ({
+        ...prev,
+        loading: false
+      }));
+    }
   };
   
   const processUserMessage = (text: string) => {
-    // Simple symptom extraction from text
     const lowerText = text.toLowerCase();
     const foundSymptoms: Symptom[] = [];
     
-    // Check if any known symptom is mentioned in the text
     symptoms.forEach(symptom => {
       if (lowerText.includes(symptom.name.toLowerCase()) || 
           lowerText.includes(symptom.id.replace('-', ' '))) {
-        // Only add if not already selected
         if (!state.selectedSymptoms.some(s => s.id === symptom.id)) {
           foundSymptoms.push(symptom);
         }
@@ -105,7 +104,6 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     let responseText = "";
     
     if (foundSymptoms.length > 0) {
-      // Add found symptoms to selected symptoms
       const newSelectedSymptoms = [...state.selectedSymptoms, ...foundSymptoms];
       
       const symptomNames = foundSymptoms.map(s => s.name).join(', ');
@@ -120,11 +118,9 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                lowerText.includes('what') || 
                lowerText.includes('diagnose') || 
                lowerText.includes('assess')) {
-      // User wants an analysis
       if (state.selectedSymptoms.length === 0) {
         responseText = "I don't have any symptoms to analyze yet. Please tell me what symptoms you're experiencing.";
       } else {
-        // We'll handle analysis in a separate function
         startAnalysis();
         return;
       }
@@ -132,7 +128,6 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       responseText = "I'm not sure if I understood your symptoms correctly. You can select symptoms from the categories below, or try describing them differently.";
     }
     
-    // Send bot response
     const botMessage: Message = {
       id: (Date.now() + 1).toString(),
       sender: 'healthbot',
@@ -148,7 +143,6 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
   
   const selectSymptom = (symptom: Symptom) => {
-    // Check if already selected
     if (state.selectedSymptoms.some(s => s.id === symptom.id)) {
       return;
     }
@@ -156,24 +150,6 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setState(prev => ({
       ...prev,
       selectedSymptoms: [...prev.selectedSymptoms, symptom]
-    }));
-    
-    // Add a message about the selection
-    const botMessage: Message = {
-      id: Date.now().toString(),
-      sender: 'healthbot',
-      text: `I've added "${symptom.name}" to your symptoms. ${
-        state.selectedSymptoms.length === 0 
-          ? "Please add more symptoms for better analysis." 
-          : "Would you like to add more symptoms or analyze these?"
-      }`,
-      timestamp: Date.now()
-    };
-    
-    setState(prev => ({
-      ...prev,
-      messages: [...prev.messages, botMessage],
-      lastInteractionTime: Date.now()
     }));
   };
   
@@ -204,7 +180,6 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
   
   const startAnalysis = () => {
-    // Don't analyze if no symptoms
     if (state.selectedSymptoms.length === 0) {
       const botMessage: Message = {
         id: Date.now().toString(),
@@ -229,7 +204,6 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       viewingDoctors: false
     }));
     
-    // Add a message to show we're analyzing
     const analyzingMessage: Message = {
       id: Date.now().toString(),
       sender: 'healthbot',
@@ -242,17 +216,12 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       messages: [...prev.messages, analyzingMessage]
     }));
     
-    // Simulate analysis time for realism
     setTimeout(() => {
-      // Get symptom IDs
       const symptomIds = state.selectedSymptoms.map(s => s.id);
       
-      // Run analysis
       const possibleDiseases = analyzeSymptomsForDiseases(symptomIds);
       
-      // Add match percentages to diseases for display
       const diseasesWithPercentages = possibleDiseases.map((disease, index) => {
-        // Calculate a percentage based on position (first is highest)
         const basePercentage = 80 - (index * 15);
         const randomOffset = Math.floor(Math.random() * 10);
         const percentage = Math.min(95, Math.max(30, basePercentage + randomOffset));
@@ -263,7 +232,6 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         };
       });
       
-      // Create analysis object
       const analysis: Analysis = {
         possibleDiseases: diseasesWithPercentages,
         confidence: diseasesWithPercentages.length > 0 ? 0.7 : 0.3,
@@ -272,11 +240,10 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           : "Your symptoms don't clearly match any specific condition in my database. Please consult with a healthcare professional for a proper diagnosis."
       };
       
-      // Create analysis message
       const analysisMessage: Message = {
         id: (Date.now() + 1).toString(),
         sender: 'healthbot',
-        text: "Here's my analysis based on your symptoms.",
+        text: "Based on your symptoms, here's my analysis:",
         timestamp: Date.now(),
         isAnalysis: true,
         analysis
@@ -297,11 +264,10 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       viewingDoctors: false
     }));
     
-    // Create a special "disease details" message
     const detailsMessage: Message = {
-      id: "disease-details", // Special ID to identify this message
+      id: "disease-details",
       sender: 'healthbot',
-      text: "", // Content will be rendered from the component
+      text: "",
       timestamp: Date.now()
     };
     
@@ -317,11 +283,10 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       viewingDoctors: true
     }));
     
-    // Create a special "doctors list" message
     const doctorsMessage: Message = {
-      id: "doctors-list", // Special ID to identify this message
+      id: "doctors-list",
       sender: 'healthbot',
-      text: "", // Content will be rendered from the component
+      text: "",
       timestamp: Date.now()
     };
     
@@ -334,7 +299,6 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const resetConversation = () => {
     setState(initialState);
     
-    // Add welcome message
     const welcomeMessage: Message = {
       id: Date.now().toString(),
       sender: 'healthbot',
