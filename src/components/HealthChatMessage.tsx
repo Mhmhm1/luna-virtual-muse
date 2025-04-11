@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Message, Disease, Doctor } from '../types/health';
 import { cn } from '@/lib/utils';
@@ -32,85 +31,30 @@ const HealthChatMessage: React.FC<HealthChatMessageProps> = ({ message }) => {
     return formattedText;
   };
 
-  if (message.isAnalysis && message.analysis) {
+  // Welcome message - special styling
+  if (message.id === "welcome-message") {
     return (
-      <div className={cn(
-        "mb-6 max-w-[90%]",
-        isBot ? "self-start" : "self-end"
-      )}>
+      <div className="mb-6 max-w-[90%] self-start">
         <div className="flex items-start gap-2">
-          {isBot && (
-            <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 flex-shrink-0 mt-1">
-              <Stethoscope className="h-5 w-5" />
-            </div>
-          )}
+          <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 flex-shrink-0 mt-1">
+            <Stethoscope className="h-5 w-5" />
+          </div>
           
-          <Card className="border-emerald-200 shadow-md w-full">
+          <Card className="border-emerald-200 shadow-md">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-3 text-emerald-700 border-b border-emerald-100 pb-2">
-                <Pill className="h-4 w-4" />
-                <h4 className="font-semibold">Health Analysis</h4>
+                <h4 className="font-semibold">Welcome to MediAssist Pro</h4>
               </div>
-              
-              <p className="text-sm mb-4">Based on your symptoms, here are the possible conditions:</p>
               
               <div className="space-y-4">
-                {message.analysis.possibleDiseases.map((disease) => (
-                  <div 
-                    key={disease.id} 
-                    className="p-3 rounded-lg border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors cursor-pointer"
-                    onClick={() => selectDisease(disease)}
-                  >
-                    <div className="flex justify-between items-center mb-2">
-                      <h5 className="font-medium text-emerald-800">{disease.name}</h5>
-                      <Badge variant={
-                        disease.severity === 'mild' ? 'outline' : 
-                        disease.severity === 'moderate' ? 'secondary' : 'destructive'
-                      }>
-                        {disease.severity.charAt(0).toUpperCase() + disease.severity.slice(1)}
-                      </Badge>
-                    </div>
-                    
-                    <p className="text-sm text-gray-600 mb-2 line-clamp-2">{disease.description}</p>
-                    
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <div className="w-full bg-gray-200 rounded-full h-1.5">
-                          <div 
-                            className="bg-emerald-600 h-1.5 rounded-full" 
-                            style={{ width: `${disease.matchPercentage || 50}%` }}
-                          ></div>
-                        </div>
-                        <span>{disease.matchPercentage || 50}% match</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span>View details</span>
-                        <ChevronRight className="h-3 w-3" />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="mt-4 text-xs text-gray-500 border-t border-gray-100 pt-2">
-                <p className="font-medium text-emerald-700">IMPORTANT:</p>
-                <p>This analysis is not a medical diagnosis. Please consult with a healthcare professional.</p>
+                <p className="text-gray-700">Hello! How are you feeling today?</p>
+                <p className="text-gray-700">I'm here to help analyze your symptoms and provide health insights. Please select any symptoms you're experiencing from the panel below.</p>
               </div>
             </CardContent>
           </Card>
-          
-          {!isBot && (
-            <div className="h-10 w-10 rounded-full bg-emerald-600 flex items-center justify-center text-white flex-shrink-0 mt-1">
-              <User className="h-5 w-5" />
-            </div>
-          )}
         </div>
         
-        <div className={cn(
-          "text-xs mt-1",
-          isBot ? "text-left ml-10" : "text-right mr-10",
-          "text-muted-foreground"
-        )}>
+        <div className="text-xs mt-1 text-left ml-10 text-muted-foreground">
           {formattedTime}
         </div>
       </div>
