@@ -4,6 +4,7 @@ import { useHealthBot } from '@/context/HealthBotContext';
 import { ChartContainer } from '@/components/ui/chart';
 import { PieChart, Pie, Cell, Legend, Tooltip } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 const HealthDataChart: React.FC = () => {
   const { state, viewDoctorsList } = useHealthBot();
