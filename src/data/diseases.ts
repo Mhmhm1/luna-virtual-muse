@@ -199,7 +199,7 @@ const doctors: Record<string, Doctor[]> = {
       name: 'Dr. Joyce Kamau',
       photoUrl: 'https://randomuser.me/api/portraits/women/38.jpg',
       specialty: 'Allergist & Immunologist',
-      hospital: 'Gertrude's Children's Hospital',
+      hospital: "Gertrude's Children's Hospital",
       experience: '15 years',
       licenseNumber: 'KEN-MD-21593',
       phone: '+254 712 678 901',
