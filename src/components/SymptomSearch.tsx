@@ -52,6 +52,7 @@ const SymptomSearch: React.FC<SymptomSearchProps> = ({
     }
   };
 
+  // No changes needed to the component body, just ensuring it's properly using hooks
   return (
     <div className={`w-full ${className}`}>
       <Popover open={open} onOpenChange={setOpen}>

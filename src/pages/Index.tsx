@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect } from 'react';
 import { HealthBotProvider, useHealthBot } from '@/context/HealthBotContext';
 import HealthChatHeader from '@/components/HealthChatHeader';
@@ -17,12 +16,10 @@ const HealthChatContainer = () => {
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [state.messages]);
   
-  // Redirect to auth page if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
       navigate('/auth');
@@ -39,7 +36,6 @@ const HealthChatContainer = () => {
   
   return (
     <div className="flex flex-col md:flex-row gap-4 h-screen p-4">
-      {/* Left side - Chat section */}
       <div className="flex-1 flex flex-col">
         <div className="mb-4 flex items-center justify-end">
           <Button 
@@ -75,7 +71,6 @@ const HealthChatContainer = () => {
         </div>
       </div>
       
-      {/* Right side - Analysis and visualization */}
       <div className="md:w-1/2 flex flex-col">
         <div className="flex-1 bg-white bg-opacity-60 backdrop-blur-md rounded-2xl shadow-xl overflow-hidden border border-gray-100">
           <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-emerald-50 to-emerald-100">
