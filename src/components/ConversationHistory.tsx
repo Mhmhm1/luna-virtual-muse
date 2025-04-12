@@ -7,14 +7,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { HistoryIcon, Trash2 } from 'lucide-react';
-import { Symptom, Analysis } from '@/types/health';
+import { Symptom, Analysis, Message } from '@/types/health';
 import { useHealthBot } from '@/context/HealthBotContext';
 import { Json } from '@/integrations/supabase/types';
 
 interface ConversationRecord {
   id: string;
   created_at: string;
-  messages: any[];
+  messages: Message[];
   selected_symptoms: Symptom[];
   analysis: Analysis | null;
 }
@@ -49,13 +49,28 @@ const ConversationHistory: React.FC = () => {
       if (error) throw error;
       
       // Convert database records to ConversationRecord type
-      const convertedData = (data || []).map((record: DatabaseConversationRecord) => ({
-        id: record.id,
-        created_at: record.created_at,
-        messages: Array.isArray(record.messages) ? record.messages : [],
-        selected_symptoms: Array.isArray(record.selected_symptoms) ? record.selected_symptoms : [],
-        analysis: record.analysis as Analysis | null,
-      }));
+      const convertedData = (data || []).map((record: DatabaseConversationRecord) => {
+        // Ensure we're properly converting the JSON data to the expected types
+        const messagesArray = Array.isArray(record.messages) ? record.messages : [];
+        const symptomsArray = Array.isArray(record.selected_symptoms) ? record.selected_symptoms : [];
+        
+        // Cast the analysis with type assertions after validating it has the right structure
+        let analysisData: Analysis | null = null;
+        if (record.analysis && typeof record.analysis === 'object' && !Array.isArray(record.analysis)) {
+          const analysisObj = record.analysis as any;
+          if ('possibleDiseases' in analysisObj && 'confidence' in analysisObj && 'recommendation' in analysisObj) {
+            analysisData = analysisObj as Analysis;
+          }
+        }
+        
+        return {
+          id: record.id,
+          created_at: record.created_at,
+          messages: messagesArray as Message[],
+          selected_symptoms: symptomsArray as Symptom[],
+          analysis: analysisData
+        };
+      });
       
       setHistory(convertedData);
     } catch (error: any) {

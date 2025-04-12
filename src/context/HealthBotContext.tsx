@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Message, Symptom, HealthBotState, Analysis, Disease, Doctor } from '../types/health';
 import { symptoms, getSymptomById } from '../data/symptoms';
@@ -77,7 +78,7 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (!user || state.messages.length <= 1) return;
     
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('conversation_history')
         .insert({
           user_id: user.id,
