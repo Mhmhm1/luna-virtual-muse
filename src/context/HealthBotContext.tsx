@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Message, Symptom, HealthBotState, Analysis, Disease, Doctor } from '../types/health';
 import { symptoms, getSymptomById } from '../data/symptoms';
@@ -78,7 +77,6 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (!user || state.messages.length <= 1) return;
     
     try {
-      // Ensure our data is safely convertible to JSON
       const messagesJson = state.messages as unknown as Json;
       const symptomsJson = state.selectedSymptoms as unknown as Json;
       const analysisJson = state.analysis as unknown as Json;
@@ -284,18 +282,22 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         };
       });
       
+      diseasesWithPercentages.sort((a, b) => (b.matchPercentage || 0) - (a.matchPercentage || 0));
+      
+      const topMatches = diseasesWithPercentages.length > 2 
+        ? diseasesWithPercentages.slice(0, 2) 
+        : diseasesWithPercentages;
+      
       const analysis: Analysis = {
-        possibleDiseases: diseasesWithPercentages,
-        confidence: diseasesWithPercentages.length > 0 ? 0.7 : 0.3,
-        recommendation: diseasesWithPercentages.length > 0 
-          ? "Based on your symptoms, you should consider consulting a healthcare professional." 
-          : "Your symptoms don't clearly match any specific condition in my database. Please consult with a healthcare professional for a proper diagnosis."
+        possibleDiseases: topMatches,
+        confidence: topMatches.length > 0 ? 0.7 : 0.3,
+        recommendation: buildRecommendation(topMatches, state.selectedSymptoms)
       };
       
       const analysisMessage: Message = {
         id: uuidv4(),
         sender: 'healthbot',
-        text: "Based on your symptoms, I've identified some possible conditions. Would you like to see more details about any of them?",
+        text: createAnalysisMessageText(topMatches, diseasesWithPercentages.length),
         timestamp: Date.now()
       };
       
@@ -310,6 +312,39 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         saveConversation();
       }
     }, 2500);
+  };
+  
+  const createAnalysisMessageText = (topMatches: Disease[], totalMatches: number): string => {
+    if (topMatches.length === 0) {
+      return "Based on the symptoms you've provided, I couldn't identify any specific conditions in my database. Please provide more information or consult a healthcare professional for a proper diagnosis.";
+    }
+    
+    if (topMatches.length === 1) {
+      return `Based on your symptoms, I've identified a possible condition: ${topMatches[0].name}. Would you like to see more details about it?`;
+    }
+    
+    if (topMatches.length === 2) {
+      return `Based on your symptoms, I've narrowed it down to two possible conditions: ${topMatches[0].name} and ${topMatches[1].name}. Would you like to see more details about either of them?`;
+    }
+    
+    return `Based on your symptoms, I've identified several possible conditions. The most likely ones are ${topMatches[0].name} and ${topMatches[1].name}. Would you like to see more details about any of them?`;
+  };
+  
+  const buildRecommendation = (diseases: Disease[], symptoms: Symptom[]): string => {
+    if (diseases.length === 0) {
+      return "Your symptoms don't clearly match any specific condition in my database. Please consult with a healthcare professional for a proper diagnosis.";
+    }
+    
+    if (diseases.length > 2) {
+      return "Your symptoms match several possible conditions. To narrow it down further, please provide more specific information about your symptoms or consult a healthcare professional.";
+    }
+    
+    if (diseases.length === 1) {
+      const disease = diseases[0];
+      return `Based on your symptoms, ${disease.name} seems likely. ${disease.description} It's recommended to consult with a ${disease.specialist.title} for proper diagnosis and treatment.`;
+    }
+    
+    return `Based on your symptoms, I've narrowed it down to ${diseases[0].name} and ${diseases[1].name}. To determine which is more likely, a healthcare professional would need to perform additional tests and examinations.`;
   };
   
   const selectDisease = (disease: Disease) => {
