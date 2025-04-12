@@ -78,13 +78,18 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (!user || state.messages.length <= 1) return;
     
     try {
+      // Ensure our data is safely convertible to JSON
+      const messagesJson = state.messages as unknown as Json;
+      const symptomsJson = state.selectedSymptoms as unknown as Json;
+      const analysisJson = state.analysis as unknown as Json;
+      
       const { error } = await supabase
         .from('conversation_history')
         .insert({
           user_id: user.id,
-          messages: state.messages as unknown as Json,
-          selected_symptoms: state.selectedSymptoms as unknown as Json,
-          analysis: state.analysis as unknown as Json
+          messages: messagesJson,
+          selected_symptoms: symptomsJson,
+          analysis: analysisJson
         });
         
       if (error) throw error;

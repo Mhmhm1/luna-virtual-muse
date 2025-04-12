@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { HistoryIcon, Trash2 } from 'lucide-react';
-import { Symptom, Analysis, Message } from '@/types/health';
+import { Symptom, Analysis, Message, BodyCategory } from '@/types/health';
 import { useHealthBot } from '@/context/HealthBotContext';
 import { Json } from '@/integrations/supabase/types';
 
@@ -28,6 +28,30 @@ interface DatabaseConversationRecord {
   updated_at: string;
   user_id: string;
 }
+
+// Helper functions to validate and convert JSON to typed objects
+const isValidMessage = (obj: any): obj is Message => {
+  return typeof obj === 'object' && obj !== null &&
+    typeof obj.id === 'string' &&
+    (obj.sender === 'user' || obj.sender === 'healthbot') &&
+    typeof obj.text === 'string' &&
+    typeof obj.timestamp === 'number';
+};
+
+const isValidSymptom = (obj: any): obj is Symptom => {
+  return typeof obj === 'object' && obj !== null &&
+    typeof obj.id === 'string' &&
+    typeof obj.name === 'string' &&
+    typeof obj.category === 'string' &&
+    typeof obj.description === 'string';
+};
+
+const isValidAnalysis = (obj: any): obj is Analysis => {
+  return typeof obj === 'object' && obj !== null &&
+    Array.isArray(obj.possibleDiseases) &&
+    typeof obj.confidence === 'number' &&
+    typeof obj.recommendation === 'string';
+};
 
 const ConversationHistory: React.FC = () => {
   const { user } = useAuth();
@@ -50,24 +74,39 @@ const ConversationHistory: React.FC = () => {
       
       // Convert database records to ConversationRecord type
       const convertedData = (data || []).map((record: DatabaseConversationRecord) => {
-        // Ensure we're properly converting the JSON data to the expected types
-        const messagesArray = Array.isArray(record.messages) ? record.messages : [];
-        const symptomsArray = Array.isArray(record.selected_symptoms) ? record.selected_symptoms : [];
+        // Convert JSON messages array to typed Message array
+        const messagesArray: Message[] = [];
+        if (Array.isArray(record.messages)) {
+          record.messages.forEach(item => {
+            if (isValidMessage(item)) {
+              messagesArray.push(item);
+            }
+          });
+        }
         
-        // Cast the analysis with type assertions after validating it has the right structure
+        // Convert JSON symptoms array to typed Symptom array
+        const symptomsArray: Symptom[] = [];
+        if (Array.isArray(record.selected_symptoms)) {
+          record.selected_symptoms.forEach(item => {
+            if (isValidSymptom(item)) {
+              symptomsArray.push(item);
+            }
+          });
+        }
+        
+        // Validate and convert analysis
         let analysisData: Analysis | null = null;
         if (record.analysis && typeof record.analysis === 'object' && !Array.isArray(record.analysis)) {
-          const analysisObj = record.analysis as any;
-          if ('possibleDiseases' in analysisObj && 'confidence' in analysisObj && 'recommendation' in analysisObj) {
-            analysisData = analysisObj as Analysis;
+          if (isValidAnalysis(record.analysis)) {
+            analysisData = record.analysis as Analysis;
           }
         }
         
         return {
           id: record.id,
           created_at: record.created_at,
-          messages: messagesArray as Message[],
-          selected_symptoms: symptomsArray as Symptom[],
+          messages: messagesArray,
+          selected_symptoms: symptomsArray,
           analysis: analysisData
         };
       });
