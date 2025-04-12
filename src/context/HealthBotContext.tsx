@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Message, Symptom, HealthBotState, Analysis, Disease, Doctor } from '../types/health';
 import { symptoms, getSymptomById } from '../data/symptoms';
@@ -307,13 +306,10 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       let analysisMessageText = "";
       
       if (topMatches.length > 2) {
-        // Too many matches - ask for more specific symptoms
         analysisMessageText = createAnalysisMessageText(topMatches.slice(0, 2), diseasesWithPercentages.length, true);
       } else if (topMatches.length === 0) {
-        // No clear matches
         analysisMessageText = "Based on the symptoms you've provided, I couldn't identify any specific conditions in my database. Please provide more information about your symptoms or consult a healthcare professional for a proper diagnosis.";
       } else {
-        // 1-2 clear matches
         analysisMessageText = createAnalysisMessageText(topMatches, diseasesWithPercentages.length, hasMoreMatches);
       }
       

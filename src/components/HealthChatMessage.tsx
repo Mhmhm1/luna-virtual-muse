@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Message, Disease } from '@/types/health';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useHealthBot } from '@/context/HealthBotContext';
+import { useAudio } from '@/context/AudioContext';
 import { BadgeInfo, ChevronRight, UserRound, User2 } from 'lucide-react';
 
 interface HealthChatMessageProps {
@@ -13,7 +14,20 @@ interface HealthChatMessageProps {
 
 const HealthChatMessage: React.FC<HealthChatMessageProps> = ({ message }) => {
   const { state, selectDisease, viewDoctorsList, viewPrescription } = useHealthBot();
+  const { speakText } = useAudio();
   const isHealthBot = message.sender === 'healthbot';
+  
+  // Speak bot messages when they are displayed
+  useEffect(() => {
+    if (isHealthBot && !message.isAnalysis) {
+      // Slight delay to ensure UI is updated first
+      const timer = setTimeout(() => {
+        speakText(message.text);
+      }, 300);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isHealthBot, message.text, message.isAnalysis, speakText]);
   
   return (
     <div className={`mb-4 ${isHealthBot ? '' : 'ml-auto max-w-[80%]'}`}>

@@ -6,6 +6,7 @@ import { Stethoscope, LogOut, LogIn, Save } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useHealthBot } from '@/context/HealthBotContext';
 import ConversationHistory from './ConversationHistory';
+import SoundToggle from './SoundToggle';
 
 const HealthChatHeader: React.FC = () => {
   const { user, signOut } = useAuth();
@@ -23,12 +24,14 @@ const HealthChatHeader: React.FC = () => {
           <Stethoscope className="h-5 w-5" />
         </div>
         <div>
-          <h2 className="font-semibold text-emerald-800">MediAssist Pro</h2>
+          <h2 className="font-semibold text-lg text-emerald-800">MediAssist Pro</h2>
           <p className="text-xs text-emerald-600">Your personal health assistant</p>
         </div>
       </div>
       
       <div className="flex items-center gap-2">
+        <SoundToggle />
+        
         {user ? (
           <>
             <Button 
