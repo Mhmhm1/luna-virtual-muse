@@ -71,6 +71,7 @@ const SymptomSelector: React.FC = () => {
                 <button 
                   className="ml-1" 
                   onClick={() => removeSymptom(symptom.id)}
+                  title="Remove symptom"
                 >
                   <XIcon className="h-3 w-3" />
                 </button>

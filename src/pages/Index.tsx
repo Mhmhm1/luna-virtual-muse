@@ -8,15 +8,34 @@ import SymptomSelector from '@/components/SymptomSelector';
 import HealthDataChart from '@/components/HealthDataChart';
 import { Button } from '@/components/ui/button';
 import { RotateCcw } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 
 const HealthChatContainer = () => {
   const { state, resetConversation } = useHealthBot();
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [state.messages]);
+  
+  // Redirect to auth page if not logged in
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [user, authLoading, navigate]);
+  
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-600"></div>
+      </div>
+    );
+  }
   
   return (
     <div className="flex flex-col md:flex-row gap-4 h-screen p-4">

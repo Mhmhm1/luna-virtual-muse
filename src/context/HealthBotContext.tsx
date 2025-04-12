@@ -1,10 +1,16 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Message, Symptom, HealthBotState, Analysis, Disease, Doctor } from '../types/health';
 import { symptoms, getSymptomById } from '../data/symptoms';
 import { analyzeSymptomsForDiseases } from '../data/diseases';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthContext';
+import { v4 as uuidv4 } from 'uuid';
+import { toast } from '@/hooks/use-toast';
 
 type HealthBotContextType = {
   state: HealthBotState;
+  setState: React.Dispatch<React.SetStateAction<HealthBotState>>;
   sendMessage: (text: string) => void;
   selectSymptom: (symptom: Symptom) => void;
   removeSymptom: (symptomId: string) => void;
@@ -14,6 +20,7 @@ type HealthBotContextType = {
   selectDisease: (disease: Disease) => void;
   viewDoctorsList: (disease: Disease) => void;
   viewPrescription: (disease: Disease) => void;
+  saveConversation: () => Promise<void>;
 };
 
 const initialState: HealthBotState = {
@@ -43,6 +50,8 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return initialState;
   });
 
+  const { user } = useAuth();
+
   useEffect(() => {
     localStorage.setItem('healthBotState', JSON.stringify(state));
   }, [state]);
@@ -50,7 +59,7 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   useEffect(() => {
     if (state.messages.length === 0) {
       const welcomeMessage: Message = {
-        id: Date.now().toString(),
+        id: uuidv4(),
         sender: 'healthbot',
         text: "Hello! I'm your MediAssist Pro assistant. How are you feeling today? Please select your symptoms or describe them to me.",
         timestamp: Date.now()
@@ -64,9 +73,40 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, []);
 
+  const saveConversation = async () => {
+    if (!user || state.messages.length <= 1) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('conversation_history')
+        .insert({
+          user_id: user.id,
+          messages: state.messages,
+          selected_symptoms: state.selectedSymptoms,
+          analysis: state.analysis
+        })
+        .select();
+        
+      if (error) throw error;
+      
+      toast({
+        title: "Conversation saved",
+        description: "Your conversation has been saved to your history.",
+      });
+      
+      return data[0];
+    } catch (error: any) {
+      toast({
+        title: "Error saving conversation",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const sendMessage = (text: string) => {
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: uuidv4(),
       sender: 'user',
       text,
       timestamp: Date.now()
@@ -132,7 +172,7 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
     
     const botMessage: Message = {
-      id: (Date.now() + 1).toString(),
+      id: uuidv4(),
       sender: 'healthbot',
       text: responseText,
       timestamp: Date.now()
@@ -161,6 +201,10 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       ...prev,
       selectedSymptoms: prev.selectedSymptoms.filter(s => s.id !== symptomId)
     }));
+    
+    toast({
+      description: "Symptom removed from your list.",
+    });
   };
   
   const clearSymptoms = () => {
@@ -170,7 +214,7 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }));
     
     const botMessage: Message = {
-      id: Date.now().toString(),
+      id: uuidv4(),
       sender: 'healthbot',
       text: "I've cleared all your symptoms. When you're ready, please tell me what symptoms you're experiencing.",
       timestamp: Date.now()
@@ -185,7 +229,7 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const startAnalysis = () => {
     if (state.selectedSymptoms.length === 0) {
       const botMessage: Message = {
-        id: Date.now().toString(),
+        id: uuidv4(),
         sender: 'healthbot',
         text: "I need to know your symptoms before I can analyze them. Please add some symptoms first.",
         timestamp: Date.now()
@@ -210,7 +254,7 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }));
     
     const analyzingMessage: Message = {
-      id: Date.now().toString(),
+      id: uuidv4(),
       sender: 'healthbot',
       text: "Analyzing your symptoms...",
       timestamp: Date.now()
@@ -246,7 +290,7 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       };
       
       const analysisMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: uuidv4(),
         sender: 'healthbot',
         text: "Based on your symptoms, I've identified some possible conditions. Would you like to see more details about any of them?",
         timestamp: Date.now()
@@ -258,6 +302,11 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         loading: false,
         analysis: analysis
       }));
+      
+      // Save conversation after analysis
+      if (user) {
+        saveConversation();
+      }
     }, 2500);
   };
   
@@ -270,7 +319,7 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }));
     
     const detailsMessage: Message = {
-      id: Date.now().toString(),
+      id: uuidv4(),
       sender: 'healthbot',
       text: `I've found more information about ${disease.name}. Would you like to see the prescription details?`,
       timestamp: Date.now()
@@ -290,7 +339,7 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }));
     
     const prescriptionMessage: Message = {
-      id: Date.now().toString(),
+      id: uuidv4(),
       sender: 'healthbot',
       text: `Here are the medication details for ${disease.name}. Would you like me to recommend a specialist?`,
       timestamp: Date.now()
@@ -309,7 +358,7 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }));
     
     const doctorsMessage: Message = {
-      id: Date.now().toString(),
+      id: uuidv4(),
       sender: 'healthbot',
       text: `Here are some ${disease.specialist.title} specialists who can help with ${disease.name}.`,
       timestamp: Date.now()
@@ -319,13 +368,23 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       ...prev,
       messages: [...prev.messages, doctorsMessage]
     }));
+    
+    // Save conversation after viewing doctors
+    if (user) {
+      saveConversation();
+    }
   };
   
   const resetConversation = () => {
+    // Save conversation before resetting if user is logged in
+    if (user && state.messages.length > 1) {
+      saveConversation();
+    }
+    
     setState(initialState);
     
     const welcomeMessage: Message = {
-      id: Date.now().toString(),
+      id: uuidv4(),
       sender: 'healthbot',
       text: "Let's start fresh. What symptoms are you experiencing?",
       timestamp: Date.now()
@@ -346,7 +405,8 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   return (
     <HealthBotContext.Provider 
       value={{ 
-        state, 
+        state,
+        setState, 
         sendMessage, 
         selectSymptom, 
         removeSymptom, 
@@ -355,7 +415,8 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         startAnalysis,
         selectDisease,
         viewDoctorsList,
-        viewPrescription
+        viewPrescription,
+        saveConversation
       }}
     >
       {children}
