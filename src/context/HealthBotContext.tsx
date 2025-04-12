@@ -169,7 +169,7 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         return;
       }
     } else {
-      responseText = "I'm not sure if I understood your symptoms correctly. You can select symptoms from the categories below, or try describing them differently.";
+      responseText = "I'm not sure if I understood your symptoms correctly. You can search for symptoms or select them from categories using the filters below.";
     }
     
     const botMessage: Message = {
@@ -272,33 +272,42 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const possibleDiseases = analyzeSymptomsForDiseases(symptomIds);
       
       const diseasesWithPercentages = possibleDiseases.map((disease, index) => {
-        const basePercentage = 80 - (index * 15);
-        const randomOffset = Math.floor(Math.random() * 10);
-        const percentage = Math.min(95, Math.max(30, basePercentage + randomOffset));
+        const matchingSymptoms = disease.commonSymptoms.filter(id => symptomIds.includes(id));
+        const totalSymptoms = disease.commonSymptoms.length;
+        const userSymptoms = symptomIds.length;
+        
+        const matchPercentage = (matchingSymptoms.length / totalSymptoms) * 100;
+        const coveragePercentage = (matchingSymptoms.length / userSymptoms) * 100;
+        
+        const finalPercentage = Math.round((matchPercentage * 0.7) + (coveragePercentage * 0.3));
         
         return {
           ...disease,
-          matchPercentage: percentage
+          matchPercentage: Math.min(95, Math.max(30, finalPercentage))
         };
       });
       
       diseasesWithPercentages.sort((a, b) => (b.matchPercentage || 0) - (a.matchPercentage || 0));
       
-      const topMatches = diseasesWithPercentages.length > 2 
-        ? diseasesWithPercentages.slice(0, 2) 
-        : diseasesWithPercentages;
+      const topMatches = diseasesWithPercentages
+        .filter(d => (d.matchPercentage || 0) > 40)
+        .slice(0, 2);
+      
+      const hasMoreMatches = diseasesWithPercentages.filter(d => (d.matchPercentage || 0) > 50).length > 2;
       
       const analysis: Analysis = {
         possibleDiseases: topMatches,
-        confidence: topMatches.length > 0 ? 0.7 : 0.3,
-        recommendation: buildRecommendation(topMatches, state.selectedSymptoms)
+        confidence: topMatches.length > 0 ? (topMatches[0].matchPercentage || 0) / 100 : 0.3,
+        recommendation: buildRecommendation(topMatches, state.selectedSymptoms, hasMoreMatches)
       };
       
       const analysisMessage: Message = {
         id: uuidv4(),
         sender: 'healthbot',
-        text: createAnalysisMessageText(topMatches, diseasesWithPercentages.length),
-        timestamp: Date.now()
+        text: createAnalysisMessageText(topMatches, diseasesWithPercentages.length, hasMoreMatches),
+        timestamp: Date.now(),
+        isAnalysis: true,
+        analysis: analysis
       };
       
       setState(prev => ({
@@ -314,29 +323,31 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }, 2500);
   };
   
-  const createAnalysisMessageText = (topMatches: Disease[], totalMatches: number): string => {
+  const createAnalysisMessageText = (topMatches: Disease[], totalMatches: number, hasMoreMatches: boolean): string => {
     if (topMatches.length === 0) {
-      return "Based on the symptoms you've provided, I couldn't identify any specific conditions in my database. Please provide more information or consult a healthcare professional for a proper diagnosis.";
+      return "Based on the symptoms you've provided, I couldn't identify any specific conditions in my database. Please provide more information about your symptoms or consult a healthcare professional for a proper diagnosis.";
+    }
+    
+    if (hasMoreMatches) {
+      return `Your symptoms match several possible conditions. To narrow down the possibilities further, please provide more specific details about your symptoms. Based on what you've shared, the most likely conditions are ${topMatches.map(d => d.name).join(' and ')}.`;
     }
     
     if (topMatches.length === 1) {
-      return `Based on your symptoms, I've identified a possible condition: ${topMatches[0].name}. Would you like to see more details about it?`;
+      const match = topMatches[0];
+      const percentage = match.matchPercentage || 0;
+      return `Based on your symptoms, there's a ${percentage}% match with ${match.name}. ${match.description} Would you like to see more details or recommended specialists?`;
     }
     
-    if (topMatches.length === 2) {
-      return `Based on your symptoms, I've narrowed it down to two possible conditions: ${topMatches[0].name} and ${topMatches[1].name}. Would you like to see more details about either of them?`;
-    }
-    
-    return `Based on your symptoms, I've identified several possible conditions. The most likely ones are ${topMatches[0].name} and ${topMatches[1].name}. Would you like to see more details about any of them?`;
+    return `Based on your symptoms, I've narrowed it down to two possible conditions: ${topMatches[0].name} (${topMatches[0].matchPercentage}% match) and ${topMatches[1].name} (${topMatches[1].matchPercentage}% match). Would you like to see more details about either of them?`;
   };
   
-  const buildRecommendation = (diseases: Disease[], symptoms: Symptom[]): string => {
+  const buildRecommendation = (diseases: Disease[], symptoms: Symptom[], hasMoreMatches: boolean): string => {
     if (diseases.length === 0) {
       return "Your symptoms don't clearly match any specific condition in my database. Please consult with a healthcare professional for a proper diagnosis.";
     }
     
-    if (diseases.length > 2) {
-      return "Your symptoms match several possible conditions. To narrow it down further, please provide more specific information about your symptoms or consult a healthcare professional.";
+    if (hasMoreMatches) {
+      return "Your symptoms match several possible conditions. To narrow it down further, please provide more specific information about when your symptoms started, their severity, and any additional symptoms you may have, or consult a healthcare professional.";
     }
     
     if (diseases.length === 1) {

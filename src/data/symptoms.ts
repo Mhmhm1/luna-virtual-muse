@@ -1,4 +1,3 @@
-
 import { Symptom, BodyCategory } from '../types/health';
 
 export const symptoms: Symptom[] = [
@@ -45,6 +44,24 @@ export const symptoms: Symptom[] = [
     category: 'neurological',
     description: 'Impaired orientation or cognitive function, difficulty thinking clearly.'
   },
+  {
+    id: 'numbness',
+    name: 'Numbness',
+    category: 'neurological',
+    description: 'Loss of sensation or feeling in parts of the body.'
+  },
+  {
+    id: 'tremors',
+    name: 'Tremors',
+    category: 'neurological',
+    description: 'Involuntary, rhythmic muscle contraction leading to shaking movements.'
+  },
+  {
+    id: 'sleep-disturbances',
+    name: 'Sleep Disturbances',
+    category: 'neurological',
+    description: 'Problems falling asleep, staying asleep, or experiencing restful sleep.'
+  },
   
   // Respiratory symptoms
   {
@@ -88,6 +105,30 @@ export const symptoms: Symptom[] = [
     name: 'Rapid Breathing',
     category: 'respiratory',
     description: 'Breathing at a faster rate than normal (tachypnea).'
+  },
+  {
+    id: 'sneezing',
+    name: 'Sneezing',
+    category: 'respiratory',
+    description: 'Forceful, involuntary expulsion of air through the nose and mouth.'
+  },
+  {
+    id: 'coughing-up-blood',
+    name: 'Coughing Up Blood',
+    category: 'respiratory',
+    description: 'Expelling blood when coughing (hemoptysis).'
+  },
+  {
+    id: 'phlegm',
+    name: 'Phlegm Production',
+    category: 'respiratory',
+    description: 'Excess mucus produced by the respiratory tract, often coughed up.'
+  },
+  {
+    id: 'sleep-apnea',
+    name: 'Sleep Apnea',
+    category: 'respiratory',
+    description: 'Breathing repeatedly stops and starts during sleep.'
   },
   
   // Digestive symptoms
@@ -139,6 +180,30 @@ export const symptoms: Symptom[] = [
     category: 'digestive',
     description: 'Reduced desire to eat or lack of interest in food.'
   },
+  {
+    id: 'blood-in-stool',
+    name: 'Blood in Stool',
+    category: 'digestive',
+    description: 'Presence of blood in bowel movements.'
+  },
+  {
+    id: 'difficulty-swallowing',
+    name: 'Difficulty Swallowing',
+    category: 'digestive',
+    description: 'Trouble moving food or liquid from mouth to stomach (dysphagia).'
+  },
+  {
+    id: 'acid-reflux',
+    name: 'Acid Reflux',
+    category: 'digestive',
+    description: 'Stomach acid flows back into the esophagus, causing irritation.'
+  },
+  {
+    id: 'excessive-gas',
+    name: 'Excessive Gas',
+    category: 'digestive',
+    description: 'Increased belching, flatulence, or abdominal distention due to gas.'
+  },
   
   // Musculoskeletal symptoms
   {
@@ -182,6 +247,36 @@ export const symptoms: Symptom[] = [
     name: 'Muscle Cramps',
     category: 'musculoskeletal',
     description: 'Sudden, involuntary contractions of muscles that can cause intense pain.'
+  },
+  {
+    id: 'bone-pain',
+    name: 'Bone Pain',
+    category: 'musculoskeletal',
+    description: 'Pain originating from bone tissue, often deep, penetrating, or dull.'
+  },
+  {
+    id: 'joint-stiffness',
+    name: 'Joint Stiffness',
+    category: 'musculoskeletal',
+    description: 'Decreased ease of movement in a joint, often with pain.'
+  },
+  {
+    id: 'muscle-twitching',
+    name: 'Muscle Twitching',
+    category: 'musculoskeletal',
+    description: 'Small, involuntary contractions of muscle groups (fasciculations).'
+  },
+  {
+    id: 'neck-pain',
+    name: 'Neck Pain',
+    category: 'musculoskeletal',
+    description: 'Discomfort or pain in the neck region.'
+  },
+  {
+    id: 'joint-locking',
+    name: 'Joint Locking',
+    category: 'musculoskeletal',
+    description: 'Temporary inability to move a joint either into a straightened position or a bent position.'
   },
   
   // Dermatological symptoms
@@ -227,6 +322,36 @@ export const symptoms: Symptom[] = [
     category: 'dermatological',
     description: 'Raised, itchy welts on the skin, often due to an allergic reaction.'
   },
+  {
+    id: 'skin-lesions',
+    name: 'Skin Lesions',
+    category: 'dermatological',
+    description: 'Abnormal growth or appearance of skin tissue.'
+  },
+  {
+    id: 'skin-peeling',
+    name: 'Skin Peeling',
+    category: 'dermatological',
+    description: 'Top layer of skin coming off in flakes or sheets.'
+  },
+  {
+    id: 'bruising',
+    name: 'Easy Bruising',
+    category: 'dermatological',
+    description: 'Tendency to develop bruises with minimal trauma.'
+  },
+  {
+    id: 'skin-ulcers',
+    name: 'Skin Ulcers',
+    category: 'dermatological',
+    description: 'Open sores on the skin that don\'t heal properly.'
+  },
+  {
+    id: 'hair-loss',
+    name: 'Hair Loss',
+    category: 'dermatological',
+    description: 'Partial or complete loss of hair from areas where it normally grows.'
+  },
   
   // General symptoms
   {
@@ -271,6 +396,36 @@ export const symptoms: Symptom[] = [
     category: 'general',
     description: 'Enlarged lymph nodes that may be tender to touch, often due to infection or inflammation.'
   },
+  {
+    id: 'malaise',
+    name: 'Malaise',
+    category: 'general',
+    description: 'A general feeling of discomfort, illness, or unease.'
+  },
+  {
+    id: 'weight-gain',
+    name: 'Unexpected Weight Gain',
+    category: 'general',
+    description: 'Gaining weight without changes in diet or exercise habits.'
+  },
+  {
+    id: 'dehydration',
+    name: 'Dehydration',
+    category: 'general',
+    description: 'Excessive loss of body fluids causing thirst, dry mouth, dark urine, and weakness.'
+  },
+  {
+    id: 'loss-of-consciousness',
+    name: 'Loss of Consciousness',
+    category: 'general',
+    description: 'Temporary or prolonged loss of awareness and responsiveness to the environment.'
+  },
+  {
+    id: 'thirst',
+    name: 'Excessive Thirst',
+    category: 'general',
+    description: 'Abnormal feeling of needing to drink fluids, often persistent.'
+  },
   
   // Cardiovascular symptoms
   {
@@ -296,6 +451,30 @@ export const symptoms: Symptom[] = [
     name: 'Edema',
     category: 'cardiovascular',
     description: 'Swelling caused by excess fluid trapped in body tissues, often in the lower limbs.'
+  },
+  {
+    id: 'chest-pressure',
+    name: 'Chest Pressure',
+    category: 'cardiovascular',
+    description: 'Sensation of tightness, squeezing, or compression in the chest.'
+  },
+  {
+    id: 'cold-extremities',
+    name: 'Cold Extremities',
+    category: 'cardiovascular',
+    description: 'Unusually cold hands or feet, possibly due to poor circulation.'
+  },
+  {
+    id: 'bluish-skin',
+    name: 'Bluish Skin Discoloration',
+    category: 'cardiovascular',
+    description: 'Skin taking on a bluish tint (cyanosis), often in lips, fingers, or toes.'
+  },
+  {
+    id: 'fainting',
+    name: 'Fainting',
+    category: 'cardiovascular',
+    description: 'Temporary loss of consciousness due to reduced blood flow to the brain.'
   },
   
   // ENT (Ear, Nose, Throat) symptoms
@@ -323,6 +502,36 @@ export const symptoms: Symptom[] = [
     category: 'ent',
     description: 'Abnormal change in voice, often sounding rough, raspy, or strained.'
   },
+  {
+    id: 'nasal-discharge',
+    name: 'Nasal Discharge',
+    category: 'ent',
+    description: 'Secretion from the nasal passages, which may be clear, white, yellow, or green.'
+  },
+  {
+    id: 'ear-discharge',
+    name: 'Ear Discharge',
+    category: 'ent',
+    description: 'Fluid coming from the ear canal, which may be clear, bloody, or pus-like.'
+  },
+  {
+    id: 'sinus-pressure',
+    name: 'Sinus Pressure',
+    category: 'ent',
+    description: 'Feeling of fullness or pressure in the forehead, cheeks, or around the eyes.'
+  },
+  {
+    id: 'post-nasal-drip',
+    name: 'Post-Nasal Drip',
+    category: 'ent',
+    description: 'Mucus dripping from the back of the nose into the throat.'
+  },
+  {
+    id: 'vertigo',
+    name: 'Vertigo',
+    category: 'ent',
+    description: 'A sensation that you or your surroundings are spinning or moving.'
+  },
   
   // Urinary symptoms
   {
@@ -348,6 +557,88 @@ export const symptoms: Symptom[] = [
     name: 'Urinary Incontinence',
     category: 'urinary',
     description: 'Loss of bladder control, resulting in unintentional passing of urine.'
+  },
+  {
+    id: 'urgency-to-urinate',
+    name: 'Urgency to Urinate',
+    category: 'urinary',
+    description: 'Sudden, compelling urge to urinate that is difficult to delay.'
+  },
+  {
+    id: 'cloudy-urine',
+    name: 'Cloudy Urine',
+    category: 'urinary',
+    description: 'Urine that appears opaque or milky instead of clear.'
+  },
+  {
+    id: 'difficulty-urinating',
+    name: 'Difficulty Urinating',
+    category: 'urinary',
+    description: 'Trouble starting or maintaining urination.'
+  },
+  {
+    id: 'urine-odor',
+    name: 'Strong Urine Odor',
+    category: 'urinary',
+    description: 'Urine with an unusually strong or unpleasant smell.'
+  },
+  {
+    id: 'urinary-retention',
+    name: 'Urinary Retention',
+    category: 'urinary',
+    description: 'Inability to empty the bladder completely.'
+  },
+  
+  // Endocrine symptoms
+  {
+    id: 'increased-thirst',
+    name: 'Increased Thirst',
+    category: 'general',
+    description: 'Abnormal feeling of needing to drink fluids frequently.'
+  },
+  {
+    id: 'increased-hunger',
+    name: 'Increased Hunger',
+    category: 'general',
+    description: 'Excessive appetite despite adequate food intake.'
+  },
+  {
+    id: 'heat-intolerance',
+    name: 'Heat Intolerance',
+    category: 'general',
+    description: 'Discomfort when in warm environments or during hot weather.'
+  },
+  {
+    id: 'cold-intolerance',
+    name: 'Cold Intolerance',
+    category: 'general',
+    description: 'Unusual sensitivity to cold temperatures.'
+  },
+  
+  // Psychological symptoms
+  {
+    id: 'anxiety',
+    name: 'Anxiety',
+    category: 'neurological',
+    description: 'Feelings of worry, nervousness, or unease about something with an uncertain outcome.'
+  },
+  {
+    id: 'depression',
+    name: 'Depression',
+    category: 'neurological',
+    description: 'Persistent feelings of sadness and loss of interest in activities.'
+  },
+  {
+    id: 'mood-swings',
+    name: 'Mood Swings',
+    category: 'neurological',
+    description: 'Rapid and extreme fluctuations in mood.'
+  },
+  {
+    id: 'irritability',
+    name: 'Irritability',
+    category: 'neurological',
+    description: 'Easily annoyed or provoked to anger.'
   }
 ];
 

@@ -7,11 +7,13 @@ import { useHealthBot } from '@/context/HealthBotContext';
 import { Symptom, BodyCategory } from '@/types/health';
 import { getAllCategories, getCategoryLabel, getSymptomsByCategory } from '@/data/symptoms';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import SymptomSearch from './SymptomSearch';
 
 const SymptomSelector: React.FC = () => {
   const { state, selectSymptom, removeSymptom, clearSymptoms, startAnalysis, sendMessage } = useHealthBot();
   const [activeCategory, setActiveCategory] = useState<BodyCategory | 'all'>('all');
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
   // Define icons for each category
   const getCategoryIcon = (category: string) => {
@@ -53,7 +55,7 @@ const SymptomSelector: React.FC = () => {
     setTimeout(() => startAnalysis(), 800);
   };
 
-  // Get symptoms for the selected category or all if "all" is selected
+  // Get symptoms for the selected category
   const getFilteredSymptoms = (): Symptom[] => {
     if (activeCategory === 'all') {
       return [];
@@ -112,71 +114,64 @@ const SymptomSelector: React.FC = () => {
         <SymptomSearch 
           onSelectSymptom={handleSymptomSelection} 
           placeholder="Type to search symptoms..."
+          className="mb-2"
         />
         
-        <div className="flex items-center space-x-2">
-          <div className="flex-shrink-0">
+        <div className="flex flex-col space-y-2">
+          <div className="flex items-center space-x-2">
             <label className="text-sm font-medium text-emerald-800">Filter by category:</label>
+            <Select 
+              value={activeCategory} 
+              onValueChange={(value) => {
+                setActiveCategory(value as BodyCategory | 'all');
+                setShowCategoryDropdown(value !== 'all');
+              }}
+            >
+              <SelectTrigger className="h-9 bg-emerald-50 border-emerald-200 focus:ring-emerald-500 flex-1">
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {getAllCategories().map(category => (
+                  <SelectItem key={category} value={category} className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
+                      {getCategoryIcon(category)}
+                      <span>{getCategoryLabel(category)}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <Select 
-            value={activeCategory} 
-            onValueChange={(value) => setActiveCategory(value as BodyCategory | 'all')}
-          >
-            <SelectTrigger className="h-9 bg-emerald-50 border-emerald-200 focus:ring-emerald-500">
-              <SelectValue placeholder="Select a category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {getAllCategories().map(category => (
-                <SelectItem key={category} value={category} className="flex items-center gap-2">
-                  <div className="flex items-center gap-2">
-                    {getCategoryIcon(category)}
-                    <span>{getCategoryLabel(category)}</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          
+          {showCategoryDropdown && activeCategory !== 'all' && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full justify-between bg-emerald-50 border-emerald-200">
+                  Select a symptom from {getCategoryLabel(activeCategory)}
+                  <span className="ml-2">▼</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-full max-h-[300px] overflow-y-auto bg-white">
+                {getFilteredSymptoms().map(symptom => (
+                  <DropdownMenuItem 
+                    key={symptom.id}
+                    onClick={() => handleSymptomSelection(symptom)}
+                    disabled={state.selectedSymptoms.some(s => s.id === symptom.id)}
+                    className={`${state.selectedSymptoms.some(s => s.id === symptom.id) ? 'opacity-50' : ''}`}
+                  >
+                    <div>
+                      <div>{symptom.name}</div>
+                      <div className="text-xs text-muted-foreground">{symptom.description}</div>
+                    </div>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
-        
-        {activeCategory !== 'all' && (
-          <div className="grid grid-cols-2 gap-2 mt-2">
-            {getFilteredSymptoms().map(symptom => (
-              <SymptomButton 
-                key={symptom.id}
-                symptom={symptom}
-                isSelected={state.selectedSymptoms.some(s => s.id === symptom.id)}
-                onSelect={handleSymptomSelection}
-              />
-            ))}
-          </div>
-        )}
       </div>
     </div>
-  );
-};
-
-interface SymptomButtonProps {
-  symptom: Symptom;
-  isSelected: boolean;
-  onSelect: (symptom: Symptom) => void;
-}
-
-const SymptomButton: React.FC<SymptomButtonProps> = ({ symptom, isSelected, onSelect }) => {
-  return (
-    <Button
-      variant={isSelected ? "default" : "outline"}
-      className={isSelected 
-        ? "bg-emerald-600 hover:bg-emerald-700 justify-start" 
-        : "hover:bg-emerald-50 hover:text-emerald-900 border-emerald-200 justify-start"
-      }
-      size="sm"
-      onClick={() => !isSelected && onSelect(symptom)}
-      disabled={isSelected}
-      title={symptom.description}
-    >
-      {symptom.name}
-    </Button>
   );
 };
 

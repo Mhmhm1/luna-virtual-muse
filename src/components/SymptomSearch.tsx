@@ -10,9 +10,14 @@ import { searchSymptoms } from '@/data/symptoms';
 interface SymptomSearchProps {
   onSelectSymptom: (symptom: Symptom) => void;
   placeholder?: string;
+  className?: string;
 }
 
-const SymptomSearch: React.FC<SymptomSearchProps> = ({ onSelectSymptom, placeholder = "Search symptoms..." }) => {
+const SymptomSearch: React.FC<SymptomSearchProps> = ({ 
+  onSelectSymptom, 
+  placeholder = "Search symptoms...", 
+  className = "" 
+}) => {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [searchResults, setSearchResults] = useState<Symptom[]>([]);
@@ -40,51 +45,62 @@ const SymptomSearch: React.FC<SymptomSearchProps> = ({ onSelectSymptom, placehol
     }
   };
 
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setOpen(true);
+    }
+  };
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <div className="relative w-full">
-          <Input
-            ref={inputRef}
-            placeholder={placeholder}
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onFocus={() => setOpen(true)}
-            className="w-full focus-visible:ring-emerald-500"
-          />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-            {inputValue ? (
-              <button onClick={handleClear} className="text-gray-400 hover:text-gray-500">
-                <X className="h-4 w-4" />
-              </button>
-            ) : (
-              <Search className="h-4 w-4 text-gray-400" />
-            )}
+    <div className={`w-full ${className}`}>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <div className="relative w-full">
+            <Input
+              ref={inputRef}
+              placeholder={placeholder}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onFocus={() => setOpen(true)}
+              onKeyDown={handleInputKeyDown}
+              className="w-full focus-visible:ring-emerald-500"
+            />
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+              {inputValue ? (
+                <button onClick={handleClear} className="text-gray-400 hover:text-gray-500">
+                  <X className="h-4 w-4" />
+                </button>
+              ) : (
+                <Search className="h-4 w-4 text-gray-400" />
+              )}
+            </div>
           </div>
-        </div>
-      </PopoverTrigger>
-      <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)] max-h-[300px] overflow-y-auto" align="start">
-        <Command>
-          <CommandList>
-            <CommandEmpty>No symptoms found</CommandEmpty>
-            <CommandGroup>
-              {searchResults.map((symptom) => (
-                <CommandItem
-                  key={symptom.id}
-                  onSelect={() => handleSelect(symptom)}
-                  className="flex items-center cursor-pointer hover:bg-emerald-50"
-                >
-                  <div className="flex-1">
-                    <div className="font-medium">{symptom.name}</div>
-                    <div className="text-xs text-muted-foreground truncate">{symptom.description}</div>
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+        </PopoverTrigger>
+        <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)] max-h-[300px] overflow-y-auto" align="start">
+          <Command>
+            <CommandList>
+              <CommandEmpty>No symptoms found</CommandEmpty>
+              <CommandGroup heading="Suggestions">
+                {searchResults.map((symptom) => (
+                  <CommandItem
+                    key={symptom.id}
+                    onSelect={() => handleSelect(symptom)}
+                    className="flex items-center cursor-pointer hover:bg-emerald-50"
+                  >
+                    <div className="flex-1">
+                      <div className="font-medium">{symptom.name}</div>
+                      <div className="text-xs text-muted-foreground truncate">{symptom.description}</div>
+                      <div className="text-[10px] text-muted-foreground italic">Category: {symptom.category}</div>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 };
 
