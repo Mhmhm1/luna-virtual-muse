@@ -1,4 +1,3 @@
-
 import { Disease, Doctor } from '../types/health';
 
 // Sample doctor data
@@ -248,6 +247,211 @@ const doctors: Record<string, Doctor[]> = {
       rating: 4.7,
       available: false
     }
+  ],
+  'cardiologist': [
+    {
+      id: 'doc-19',
+      name: 'Dr. Wanjiku Kamau',
+      photoUrl: 'https://randomuser.me/api/portraits/women/68.jpg',
+      specialty: 'Cardiologist',
+      hospital: 'Nairobi Hospital',
+      experience: '16 years',
+      licenseNumber: 'KEN-MD-20589',
+      phone: '+254 722 678 901',
+      bio: 'Specializes in cardiovascular health with expertise in diagnosing and treating hypertension.',
+      rating: 4.8,
+      available: true
+    },
+    {
+      id: 'doc-20',
+      name: 'Dr. Thomas Odhiambo',
+      photoUrl: 'https://randomuser.me/api/portraits/men/66.jpg',
+      specialty: 'Cardiologist',
+      hospital: 'Aga Khan University Hospital',
+      experience: '18 years',
+      licenseNumber: 'KEN-MD-19345',
+      phone: '+254 733 789 012',
+      bio: 'Expert in managing hypertension and other cardiovascular conditions with a focus on preventative care.',
+      rating: 4.7,
+      available: true
+    },
+    {
+      id: 'doc-21',
+      name: 'Dr. Grace Wangui',
+      photoUrl: 'https://randomuser.me/api/portraits/women/77.jpg',
+      specialty: 'Cardiologist',
+      hospital: 'Karen Hospital',
+      experience: '14 years',
+      licenseNumber: 'KEN-MD-22748',
+      phone: '+254 712 890 123',
+      bio: 'Specialized in the management of complex cardiovascular diseases with a holistic approach to patient care.',
+      rating: 4.5,
+      available: true
+    }
+  ],
+  'endocrinologist': [
+    {
+      id: 'doc-22',
+      name: 'Dr. Peter Maina',
+      photoUrl: 'https://randomuser.me/api/portraits/men/45.jpg',
+      specialty: 'Endocrinologist',
+      hospital: 'Nairobi Hospital',
+      experience: '15 years',
+      licenseNumber: 'KEN-MD-21496',
+      phone: '+254 722 789 012',
+      bio: 'Specializes in diabetes management with expertise in tailoring treatment plans for individual needs.',
+      rating: 4.7,
+      available: true
+    },
+    {
+      id: 'doc-23',
+      name: 'Dr. Sarah Atieno',
+      photoUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
+      specialty: 'Endocrinologist',
+      hospital: 'Aga Khan University Hospital',
+      experience: '17 years',
+      licenseNumber: 'KEN-MD-19856',
+      phone: '+254 733 890 123',
+      bio: 'Expert in hormonal disorders with a focus on diabetes and thyroid conditions.',
+      rating: 4.8,
+      available: true
+    },
+    {
+      id: 'doc-24',
+      name: 'Dr. David Njoroge',
+      photoUrl: 'https://randomuser.me/api/portraits/men/37.jpg',
+      specialty: 'Endocrinologist',
+      hospital: 'MP Shah Hospital',
+      experience: '13 years',
+      licenseNumber: 'KEN-MD-23647',
+      phone: '+254 712 901 234',
+      bio: 'Focuses on holistic management of metabolic disorders including diabetes.',
+      rating: 4.6,
+      available: false
+    }
+  ],
+  'infectious-disease': [
+    {
+      id: 'doc-25',
+      name: 'Dr. Elizabeth Mwangi',
+      photoUrl: 'https://randomuser.me/api/portraits/women/36.jpg',
+      specialty: 'Infectious Disease Specialist',
+      hospital: 'Kenyatta National Hospital',
+      experience: '19 years',
+      licenseNumber: 'KEN-MD-18324',
+      phone: '+254 722 890 123',
+      bio: 'Specializes in tropical diseases with extensive experience in malaria and HIV management.',
+      rating: 4.9,
+      available: true
+    },
+    {
+      id: 'doc-26',
+      name: 'Dr. James Kimani',
+      photoUrl: 'https://randomuser.me/api/portraits/men/35.jpg',
+      specialty: 'Infectious Disease Specialist',
+      hospital: 'Nairobi Hospital',
+      experience: '14 years',
+      licenseNumber: 'KEN-MD-22143',
+      phone: '+254 733 901 234',
+      bio: 'Expert in diagnosing and treating a wide range of infectious diseases including tuberculosis and malaria.',
+      rating: 4.7,
+      available: true
+    },
+    {
+      id: 'doc-27',
+      name: 'Dr. Faith Akinyi',
+      photoUrl: 'https://randomuser.me/api/portraits/women/34.jpg',
+      specialty: 'Infectious Disease Specialist',
+      hospital: 'Aga Khan University Hospital',
+      experience: '16 years',
+      licenseNumber: 'KEN-MD-20487',
+      phone: '+254 712 012 345',
+      bio: 'Focuses on research and treatment of emerging infectious diseases with special interest in HIV care.',
+      rating: 4.8,
+      available: true
+    }
+  ],
+  'urologist': [
+    {
+      id: 'doc-28',
+      name: 'Dr. Martin Omondi',
+      photoUrl: 'https://randomuser.me/api/portraits/men/33.jpg',
+      specialty: 'Urologist',
+      hospital: 'Nairobi Hospital',
+      experience: '18 years',
+      licenseNumber: 'KEN-MD-19278',
+      phone: '+254 722 901 234',
+      bio: 'Specializes in urinary tract conditions with expertise in UTI management and prevention.',
+      rating: 4.8,
+      available: true
+    },
+    {
+      id: 'doc-29',
+      name: 'Dr. Mercy Wambui',
+      photoUrl: 'https://randomuser.me/api/portraits/women/32.jpg',
+      specialty: 'Urologist',
+      hospital: 'Aga Khan University Hospital',
+      experience: '15 years',
+      licenseNumber: 'KEN-MD-21538',
+      phone: '+254 733 012 345',
+      bio: 'Expert in managing urological conditions with a focus on patient education and preventative care.',
+      rating: 4.7,
+      available: true
+    },
+    {
+      id: 'doc-30',
+      name: 'Dr. Paul Njoroge',
+      photoUrl: 'https://randomuser.me/api/portraits/men/31.jpg',
+      specialty: 'Urologist',
+      hospital: 'Karen Hospital',
+      experience: '14 years',
+      licenseNumber: 'KEN-MD-22367',
+      phone: '+254 712 123 456',
+      bio: 'Specializes in complex urological disorders with a comprehensive approach to diagnosis and treatment.',
+      rating: 4.6,
+      available: false
+    }
+  ],
+  'gynecologist': [
+    {
+      id: 'doc-31',
+      name: 'Dr. Esther Njeri',
+      photoUrl: 'https://randomuser.me/api/portraits/women/31.jpg',
+      specialty: 'Gynecologist',
+      hospital: 'Nairobi Hospital',
+      experience: '17 years',
+      licenseNumber: 'KEN-MD-19822',
+      phone: '+254 722 012 345',
+      bio: 'Specializes in women\'s reproductive health with expertise in STI diagnosis and treatment.',
+      rating: 4.8,
+      available: true
+    },
+    {
+      id: 'doc-32',
+      name: 'Dr. Jane Muthoni',
+      photoUrl: 'https://randomuser.me/api/portraits/women/30.jpg',
+      specialty: 'Gynecologist',
+      hospital: 'Aga Khan University Hospital',
+      experience: '19 years',
+      licenseNumber: 'KEN-MD-18493',
+      phone: '+254 733 123 456',
+      bio: 'Expert in reproductive health and women\'s wellness with a holistic approach to patient care.',
+      rating: 4.9,
+      available: true
+    },
+    {
+      id: 'doc-33',
+      name: 'Dr. Lilian Waithera',
+      photoUrl: 'https://randomuser.me/api/portraits/women/29.jpg',
+      specialty: 'Gynecologist',
+      hospital: 'Karen Hospital',
+      experience: '16 years',
+      licenseNumber: 'KEN-MD-20712',
+      phone: '+254 712 234 567',
+      bio: 'Focuses on comprehensive women\'s health with special interest in reproductive infections.',
+      rating: 4.7,
+      available: false
+    }
   ]
 };
 
@@ -455,6 +659,267 @@ export const diseases: Disease[] = [
       recommendedDoctors: doctors['allergist']
     },
     severity: 'mild'
+  },
+  {
+    id: 'hypertension',
+    name: 'Hypertension (High Blood Pressure)',
+    description: 'A condition in which the force of the blood against the artery walls is too high, potentially leading to health problems like heart disease.',
+    commonSymptoms: ['headache', 'dizziness', 'chest-pain', 'shortness-of-breath', 'palpitations', 'high-blood-pressure', 'fatigue'],
+    medications: [
+      {
+        name: 'Lisinopril',
+        dosage: '10-40mg',
+        frequency: 'Once daily',
+        duration: 'Long-term with regular monitoring',
+        sideEffects: ['Dry cough', 'Dizziness', 'Headache']
+      },
+      {
+        name: 'Amlodipine',
+        dosage: '5-10mg',
+        frequency: 'Once daily',
+        duration: 'Long-term with regular monitoring',
+        sideEffects: ['Edema', 'Flushing', 'Headache']
+      }
+    ],
+    specialist: {
+      title: 'Cardiologist',
+      field: 'Cardiology',
+      description: 'A specialist who diagnoses and treats diseases of the heart and blood vessels.',
+      recommendedDoctors: doctors['cardiologist']
+    },
+    severity: 'moderate'
+  },
+  {
+    id: 'diabetes',
+    name: 'Type 2 Diabetes',
+    description: 'A chronic condition affecting how the body processes blood sugar (glucose), often characterized by insulin resistance.',
+    commonSymptoms: ['excessive-thirst', 'frequent-urination', 'increased-hunger', 'fatigue', 'blurred-vision', 'slow-healing-wounds', 'weight-loss'],
+    medications: [
+      {
+        name: 'Metformin',
+        dosage: '500-2000mg',
+        frequency: 'Once or twice daily with meals',
+        duration: 'Long-term with regular monitoring',
+        sideEffects: ['Nausea', 'Diarrhea', 'Abdominal discomfort']
+      },
+      {
+        name: 'Glipizide',
+        dosage: '5-20mg',
+        frequency: 'Once or twice daily before meals',
+        duration: 'Long-term with regular monitoring',
+        sideEffects: ['Hypoglycemia', 'Weight gain', 'Dizziness']
+      }
+    ],
+    specialist: {
+      title: 'Endocrinologist',
+      field: 'Endocrinology',
+      description: 'A specialist who diagnoses and treats disorders of the endocrine system, including diabetes.',
+      recommendedDoctors: doctors['endocrinologist']
+    },
+    severity: 'moderate'
+  },
+  {
+    id: 'malaria',
+    name: 'Malaria',
+    description: 'A serious disease caused by a parasite that commonly infects a certain type of mosquito which feeds on humans.',
+    commonSymptoms: ['fever', 'chills', 'headache', 'nausea', 'vomiting', 'muscle-pain', 'fatigue', 'sweating'],
+    medications: [
+      {
+        name: 'Artemether-Lumefantrine',
+        dosage: 'Based on weight',
+        frequency: 'Twice daily for 3 days',
+        duration: 'Complete 3-day course',
+        sideEffects: ['Headache', 'Dizziness', 'Loss of appetite']
+      },
+      {
+        name: 'Dihydroartemisinin-Piperaquine',
+        dosage: 'Based on weight',
+        frequency: 'Once daily for 3 days',
+        duration: 'Complete 3-day course',
+        sideEffects: ['Nausea', 'Dizziness', 'Fatigue']
+      }
+    ],
+    specialist: {
+      title: 'Infectious Disease Specialist',
+      field: 'Infectious Diseases',
+      description: 'A specialist who diagnoses and treats infections, including tropical and parasitic diseases.',
+      recommendedDoctors: doctors['infectious-disease']
+    },
+    severity: 'severe'
+  },
+  {
+    id: 'tuberculosis',
+    name: 'Tuberculosis (TB)',
+    description: 'An infectious disease that mainly affects the lungs, caused by Mycobacterium tuberculosis bacteria.',
+    commonSymptoms: ['cough', 'coughing-up-blood', 'chest-pain', 'fatigue', 'fever', 'night-sweats', 'weight-loss'],
+    medications: [
+      {
+        name: 'Isoniazid',
+        dosage: '300mg',
+        frequency: 'Once daily',
+        duration: '6-9 months',
+        sideEffects: ['Liver damage', 'Peripheral neuropathy', 'Rash']
+      },
+      {
+        name: 'Rifampin',
+        dosage: '600mg',
+        frequency: 'Once daily',
+        duration: '6-9 months',
+        sideEffects: ['Orange discoloration of bodily fluids', 'Liver damage', 'Flu-like symptoms']
+      }
+    ],
+    specialist: {
+      title: 'Pulmonologist',
+      field: 'Respiratory Medicine',
+      description: 'A specialist who treats conditions affecting the respiratory system, including tuberculosis.',
+      recommendedDoctors: doctors['pulmonologist']
+    },
+    severity: 'severe'
+  },
+  {
+    id: 'hiv',
+    name: 'HIV Infection',
+    description: 'Human Immunodeficiency Virus infection that attacks the body\'s immune system, potentially leading to AIDS if untreated.',
+    commonSymptoms: ['fever', 'fatigue', 'swollen-lymph-nodes', 'sore-throat', 'rash', 'muscle-aches', 'night-sweats', 'weight-loss'],
+    medications: [
+      {
+        name: 'Antiretroviral Therapy (ART)',
+        dosage: 'As prescribed',
+        frequency: 'Daily',
+        duration: 'Lifelong',
+        sideEffects: ['Nausea', 'Fatigue', 'Headache', 'Rash']
+      },
+      {
+        name: 'Prophylactic Antibiotics',
+        dosage: 'As prescribed',
+        frequency: 'As directed',
+        duration: 'As needed',
+        sideEffects: ['Varies by antibiotic']
+      }
+    ],
+    specialist: {
+      title: 'Infectious Disease Specialist',
+      field: 'Infectious Diseases',
+      description: 'A specialist who diagnoses and treats HIV and other infectious diseases.',
+      recommendedDoctors: doctors['infectious-disease']
+    },
+    severity: 'severe'
+  },
+  {
+    id: 'uti',
+    name: 'Urinary Tract Infection (UTI)',
+    description: 'An infection in any part of the urinary system, including kidneys, bladder, ureters, and urethra.',
+    commonSymptoms: ['painful-urination', 'frequent-urination', 'urgency-to-urinate', 'cloudy-urine', 'blood-in-urine', 'strong-urine-odor', 'pelvic-pain'],
+    medications: [
+      {
+        name: 'Nitrofurantoin',
+        dosage: '100mg',
+        frequency: 'Twice daily',
+        duration: '5-7 days',
+        sideEffects: ['Nausea', 'Headache', 'Loss of appetite']
+      },
+      {
+        name: 'Trimethoprim-Sulfamethoxazole',
+        dosage: '160/800mg',
+        frequency: 'Twice daily',
+        duration: '3-5 days',
+        sideEffects: ['Rash', 'Nausea', 'Diarrhea']
+      }
+    ],
+    specialist: {
+      title: 'Urologist',
+      field: 'Urology',
+      description: 'A specialist who diagnoses and treats conditions affecting the urinary tract and male reproductive system.',
+      recommendedDoctors: doctors['urologist']
+    },
+    severity: 'moderate'
+  },
+  {
+    id: 'chlamydia',
+    name: 'Chlamydia',
+    description: 'A common sexually transmitted infection caused by the bacterium Chlamydia trachomatis.',
+    commonSymptoms: ['painful-urination', 'abnormal-discharge', 'pain-during-sex', 'lower-abdominal-pain', 'testicular-pain', 'bleeding-between-periods'],
+    medications: [
+      {
+        name: 'Azithromycin',
+        dosage: '1g',
+        frequency: 'Single dose',
+        duration: 'One-time treatment',
+        sideEffects: ['Nausea', 'Diarrhea', 'Abdominal pain']
+      },
+      {
+        name: 'Doxycycline',
+        dosage: '100mg',
+        frequency: 'Twice daily',
+        duration: '7 days',
+        sideEffects: ['Photosensitivity', 'Nausea', 'Diarrhea']
+      }
+    ],
+    specialist: {
+      title: 'Gynecologist/Urologist',
+      field: 'Sexual Health',
+      description: 'Specialists who diagnose and treat sexually transmitted infections and related conditions.',
+      recommendedDoctors: [...doctors['gynecologist'], ...doctors['urologist']]
+    },
+    severity: 'moderate'
+  },
+  {
+    id: 'sinusitis',
+    name: 'Sinusitis',
+    description: 'Inflammation of the sinuses, often caused by infection, resulting in facial pain and nasal congestion.',
+    commonSymptoms: ['nasal-congestion', 'sinus-pressure', 'facial-pain', 'headache', 'post-nasal-drip', 'cough', 'fever'],
+    medications: [
+      {
+        name: 'Amoxicillin',
+        dosage: '500mg',
+        frequency: 'Three times daily',
+        duration: '10-14 days',
+        sideEffects: ['Diarrhea', 'Rash', 'Nausea']
+      },
+      {
+        name: 'Pseudoephedrine',
+        dosage: '60mg',
+        frequency: 'Every 4-6 hours',
+        duration: 'Up to 7 days',
+        sideEffects: ['Nervousness', 'Dizziness', 'Insomnia']
+      }
+    ],
+    specialist: {
+      title: 'ENT Specialist',
+      field: 'Otolaryngology',
+      description: 'A specialist who diagnoses and treats conditions affecting the ear, nose, and throat.',
+      recommendedDoctors: doctors['general-practitioner']
+    },
+    severity: 'mild'
+  },
+  {
+    id: 'thyroid-disorder',
+    name: 'Thyroid Disorder',
+    description: 'A condition affecting the thyroid gland, which can result in the overproduction or underproduction of thyroid hormones.',
+    commonSymptoms: ['fatigue', 'weight-changes', 'cold-intolerance', 'heat-intolerance', 'mood-swings', 'irregular-heartbeat', 'muscle-weakness'],
+    medications: [
+      {
+        name: 'Levothyroxine',
+        dosage: '25-200mcg',
+        frequency: 'Once daily',
+        duration: 'Long-term with regular monitoring',
+        sideEffects: ['Palpitations', 'Insomnia', 'Weight changes']
+      },
+      {
+        name: 'Methimazole',
+        dosage: '5-30mg',
+        frequency: 'Once or twice daily',
+        duration: 'Variable, with regular monitoring',
+        sideEffects: ['Rash', 'Joint pain', 'Liver problems']
+      }
+    ],
+    specialist: {
+      title: 'Endocrinologist',
+      field: 'Endocrinology',
+      description: 'A specialist who diagnoses and treats disorders of the endocrine system, including thyroid disorders.',
+      recommendedDoctors: doctors['endocrinologist']
+    },
+    severity: 'moderate'
   }
 ];
 

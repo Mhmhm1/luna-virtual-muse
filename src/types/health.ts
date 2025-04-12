@@ -1,3 +1,4 @@
+
 export type BodyCategory = 
   | 'neurological' 
   | 'respiratory' 
@@ -7,7 +8,9 @@ export type BodyCategory =
   | 'general'
   | 'cardiovascular'
   | 'ent'
-  | 'urinary';
+  | 'urinary'
+  | 'reproductive'
+  | 'metabolic';
 
 export interface Symptom {
   id: string;

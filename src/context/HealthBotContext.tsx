@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Message, Symptom, HealthBotState, Analysis, Disease, Doctor } from '../types/health';
 import { symptoms, getSymptomById } from '../data/symptoms';
@@ -151,7 +152,7 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const newSelectedSymptoms = [...state.selectedSymptoms, ...foundSymptoms];
       
       const symptomNames = foundSymptoms.map(s => s.name).join(', ');
-      responseText = `I've identified these symptoms: ${symptomNames}. I've added them to your list. Would you like to mention any other symptoms, or shall we analyze these?`;
+      responseText = `I've identified these symptoms: ${symptomNames}. I've added them to your list. Would you like to mention any other symptoms, or should I analyze these?`;
       
       setState(prev => ({
         ...prev,
@@ -161,7 +162,9 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     } else if (lowerText.includes('analyze') || 
                lowerText.includes('what') || 
                lowerText.includes('diagnose') || 
-               lowerText.includes('assess')) {
+               lowerText.includes('assess') ||
+               lowerText.includes('tell me') ||
+               lowerText.includes('send')) {
       if (state.selectedSymptoms.length === 0) {
         responseText = "I don't have any symptoms to analyze yet. Please tell me what symptoms you're experiencing.";
       } else {
@@ -169,7 +172,7 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         return;
       }
     } else {
-      responseText = "I'm not sure if I understood your symptoms correctly. You can search for symptoms or select them from categories using the filters below.";
+      responseText = "I'm not sure if I understood your symptoms correctly. You can search for symptoms using the search bar below, or tell me more about how you're feeling.";
     }
     
     const botMessage: Message = {
@@ -301,10 +304,23 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         recommendation: buildRecommendation(topMatches, state.selectedSymptoms, hasMoreMatches)
       };
       
+      let analysisMessageText = "";
+      
+      if (topMatches.length > 2) {
+        // Too many matches - ask for more specific symptoms
+        analysisMessageText = createAnalysisMessageText(topMatches.slice(0, 2), diseasesWithPercentages.length, true);
+      } else if (topMatches.length === 0) {
+        // No clear matches
+        analysisMessageText = "Based on the symptoms you've provided, I couldn't identify any specific conditions in my database. Please provide more information about your symptoms or consult a healthcare professional for a proper diagnosis.";
+      } else {
+        // 1-2 clear matches
+        analysisMessageText = createAnalysisMessageText(topMatches, diseasesWithPercentages.length, hasMoreMatches);
+      }
+      
       const analysisMessage: Message = {
         id: uuidv4(),
         sender: 'healthbot',
-        text: createAnalysisMessageText(topMatches, diseasesWithPercentages.length, hasMoreMatches),
+        text: analysisMessageText,
         timestamp: Date.now(),
         isAnalysis: true,
         analysis: analysis
@@ -329,33 +345,33 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
     
     if (hasMoreMatches) {
-      return `Your symptoms match several possible conditions. To narrow down the possibilities further, please provide more specific details about your symptoms. Based on what you've shared, the most likely conditions are ${topMatches.map(d => d.name).join(' and ')}.`;
+      return `Your symptoms match several possible conditions. To narrow down the possibilities further, please provide more specific details about your symptoms, such as when they started, their severity, and any additional symptoms you may be experiencing. Based on what you've shared so far, the most likely possibilities include ${topMatches.map(d => d.name).join(' and ')}.`;
     }
     
     if (topMatches.length === 1) {
       const match = topMatches[0];
       const percentage = match.matchPercentage || 0;
-      return `Based on your symptoms, there's a ${percentage}% match with ${match.name}. ${match.description} Would you like to see more details or recommended specialists?`;
+      return `Based on your symptoms, there's a ${percentage}% match with ${match.name}. ${match.description} Would you like to see more details about this condition or recommendations for specialists?`;
     }
     
-    return `Based on your symptoms, I've narrowed it down to two possible conditions: ${topMatches[0].name} (${topMatches[0].matchPercentage}% match) and ${topMatches[1].name} (${topMatches[1].matchPercentage}% match). Would you like to see more details about either of them?`;
+    return `Based on your symptoms, I've narrowed it down to two possible conditions: ${topMatches[0].name} (${topMatches[0].matchPercentage}% match) and ${topMatches[1].name} (${topMatches[1].matchPercentage}% match). Would you like to see more details about either of these conditions?`;
   };
   
   const buildRecommendation = (diseases: Disease[], symptoms: Symptom[], hasMoreMatches: boolean): string => {
     if (diseases.length === 0) {
-      return "Your symptoms don't clearly match any specific condition in my database. Please consult with a healthcare professional for a proper diagnosis.";
+      return "Your symptoms don't clearly match any specific condition in my database. Please consult with a healthcare professional for a proper diagnosis. Consider providing more details about your symptoms, including their duration, severity, and any other symptoms you might be experiencing.";
     }
     
     if (hasMoreMatches) {
-      return "Your symptoms match several possible conditions. To narrow it down further, please provide more specific information about when your symptoms started, their severity, and any additional symptoms you may have, or consult a healthcare professional.";
+      return "Your symptoms match several possible conditions. To narrow it down further, please provide more specific information about when your symptoms started, their severity, and any additional symptoms you may have. The key to an accurate diagnosis is often in the details, so try to be as specific as possible, or consult a healthcare professional for a thorough evaluation.";
     }
     
     if (diseases.length === 1) {
       const disease = diseases[0];
-      return `Based on your symptoms, ${disease.name} seems likely. ${disease.description} It's recommended to consult with a ${disease.specialist.title} for proper diagnosis and treatment.`;
+      return `Based on your symptoms, ${disease.name} seems likely. ${disease.description} It's recommended to consult with a ${disease.specialist.title} for proper diagnosis and treatment. Please note that this is not a definitive diagnosis, and a healthcare professional will need to evaluate you in person.`;
     }
     
-    return `Based on your symptoms, I've narrowed it down to ${diseases[0].name} and ${diseases[1].name}. To determine which is more likely, a healthcare professional would need to perform additional tests and examinations.`;
+    return `Based on your symptoms, I've narrowed it down to ${diseases[0].name} and ${diseases[1].name}. To determine which is more likely, a healthcare professional would need to perform additional tests and examinations. It would be helpful to monitor your symptoms and note any changes or new symptoms that develop. Remember, this analysis is not a substitute for professional medical advice.`;
   };
   
   const selectDisease = (disease: Disease) => {
@@ -369,7 +385,13 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const detailsMessage: Message = {
       id: uuidv4(),
       sender: 'healthbot',
-      text: `I've found more information about ${disease.name}. Would you like to see the prescription details?`,
+      text: `I've found more information about ${disease.name}. Here are some key points:
+      
+• ${disease.description}
+• Severity: ${disease.severity.charAt(0).toUpperCase() + disease.severity.slice(1)}
+• Recommended specialist: ${disease.specialist.title}
+      
+Would you like to see the potential treatment options or recommended specialists?`,
       timestamp: Date.now()
     };
     
@@ -386,10 +408,18 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       viewingDoctors: false
     }));
     
+    const medicationsList = disease.medications.map(med => 
+      `• ${med.name} (${med.dosage}): ${med.frequency} for ${med.duration}`
+    ).join('\n');
+    
     const prescriptionMessage: Message = {
       id: uuidv4(),
       sender: 'healthbot',
-      text: `Here are the medication details for ${disease.name}. Would you like me to recommend a specialist?`,
+      text: `Here are common medications used to treat ${disease.name}:
+      
+${medicationsList}
+      
+Please note that medication should only be taken as prescribed by a healthcare professional. Would you like me to recommend specialists who can provide proper treatment?`,
       timestamp: Date.now()
     };
     
@@ -405,10 +435,23 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       viewingDoctors: true
     }));
     
+    const doctors = disease.specialist.recommendedDoctors;
+    const availableDoctors = doctors.filter(doc => doc.available);
+    
+    let doctorsText = `Here are some ${disease.specialist.title} specialists who can help with ${disease.name}:\n\n`;
+    
+    if (availableDoctors.length > 0) {
+      doctorsText += availableDoctors.slice(0, 2).map(doc => 
+        `• ${doc.name} (${doc.specialty}) - ${doc.hospital}\n  Experience: ${doc.experience} | Rating: ${"★".repeat(Math.round(doc.rating))}\n  Contact: ${doc.phone}`
+      ).join('\n\n');
+    } else {
+      doctorsText += `Currently, there are no available specialists. Please check back later or contact your local hospital for referrals.`;
+    }
+    
     const doctorsMessage: Message = {
       id: uuidv4(),
       sender: 'healthbot',
-      text: `Here are some ${disease.specialist.title} specialists who can help with ${disease.name}.`,
+      text: doctorsText,
       timestamp: Date.now()
     };
     

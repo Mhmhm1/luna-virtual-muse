@@ -639,11 +639,91 @@ export const symptoms: Symptom[] = [
     name: 'Irritability',
     category: 'neurological',
     description: 'Easily annoyed or provoked to anger.'
+  },
+  
+  // Additional symptoms for new diseases
+  
+  // Slow healing wounds (diabetes)
+  {
+    id: 'slow-healing-wounds',
+    name: 'Slow Healing Wounds',
+    category: 'dermatological',
+    description: 'Cuts, scrapes, or sores that take longer than usual to heal, often associated with diabetes.'
+  },
+  
+  // Reproductive and STI related symptoms
+  {
+    id: 'abnormal-discharge',
+    name: 'Abnormal Discharge',
+    category: 'reproductive',
+    description: 'Unusual fluid from the vagina or penis, often a sign of infection.'
+  },
+  {
+    id: 'pain-during-sex',
+    name: 'Pain During Sex',
+    category: 'reproductive',
+    description: 'Discomfort or pain experienced during sexual intercourse.'
+  },
+  {
+    id: 'testicular-pain',
+    name: 'Testicular Pain',
+    category: 'reproductive',
+    description: 'Discomfort or pain in one or both testicles.'
+  },
+  {
+    id: 'bleeding-between-periods',
+    name: 'Bleeding Between Periods',
+    category: 'reproductive',
+    description: 'Vaginal bleeding that occurs at times other than during a normal menstrual period.'
+  },
+  {
+    id: 'lower-abdominal-pain',
+    name: 'Lower Abdominal Pain',
+    category: 'reproductive',
+    description: 'Pain or discomfort in the lower abdominal region, which may be related to reproductive organs.'
+  },
+  
+  // Metabolic and endocrine symptoms
+  {
+    id: 'weight-changes',
+    name: 'Unexpected Weight Changes',
+    category: 'metabolic',
+    description: 'Unexplained weight gain or loss without changes in diet or exercise.'
+  },
+  {
+    id: 'pelvic-pain',
+    name: 'Pelvic Pain',
+    category: 'reproductive',
+    description: 'Pain in the pelvic region, which may be related to urinary or reproductive conditions.'
+  },
+  {
+    id: 'muscle-pain',
+    name: 'Muscle Pain',
+    category: 'musculoskeletal',
+    description: 'Aching or soreness in the muscles, often associated with infections or inflammatory conditions.'
+  },
+  {
+    id: 'sweating',
+    name: 'Excessive Sweating',
+    category: 'general',
+    description: 'Abnormal amounts of sweating, often associated with infections or hormonal conditions.'
   }
 ];
 
 export const getAllCategories = (): BodyCategory[] => {
-  return ['neurological', 'respiratory', 'digestive', 'musculoskeletal', 'dermatological', 'general', 'cardiovascular', 'ent', 'urinary'];
+  return [
+    'neurological', 
+    'respiratory', 
+    'digestive', 
+    'musculoskeletal', 
+    'dermatological', 
+    'general', 
+    'cardiovascular', 
+    'ent', 
+    'urinary',
+    'reproductive',
+    'metabolic'
+  ];
 };
 
 export const getCategoryLabel = (category: BodyCategory): string => {
@@ -666,6 +746,10 @@ export const getCategoryLabel = (category: BodyCategory): string => {
       return 'Ear, Nose & Throat';
     case 'urinary':
       return 'Urinary System';
+    case 'reproductive':
+      return 'Reproductive System';
+    case 'metabolic':
+      return 'Metabolic & Hormonal';
     default:
       return category;
   }
