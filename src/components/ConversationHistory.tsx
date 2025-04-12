@@ -9,6 +9,7 @@ import { toast } from '@/hooks/use-toast';
 import { HistoryIcon, Trash2 } from 'lucide-react';
 import { Symptom, Analysis } from '@/types/health';
 import { useHealthBot } from '@/context/HealthBotContext';
+import { Json } from '@/integrations/supabase/types';
 
 interface ConversationRecord {
   id: string;
@@ -16,6 +17,16 @@ interface ConversationRecord {
   messages: any[];
   selected_symptoms: Symptom[];
   analysis: Analysis | null;
+}
+
+interface DatabaseConversationRecord {
+  id: string;
+  created_at: string;
+  messages: Json;
+  selected_symptoms: Json;
+  analysis: Json | null;
+  updated_at: string;
+  user_id: string;
 }
 
 const ConversationHistory: React.FC = () => {
@@ -37,7 +48,16 @@ const ConversationHistory: React.FC = () => {
         
       if (error) throw error;
       
-      setHistory(data || []);
+      // Convert database records to ConversationRecord type
+      const convertedData = (data || []).map((record: DatabaseConversationRecord) => ({
+        id: record.id,
+        created_at: record.created_at,
+        messages: Array.isArray(record.messages) ? record.messages : [],
+        selected_symptoms: Array.isArray(record.selected_symptoms) ? record.selected_symptoms : [],
+        analysis: record.analysis as Analysis | null,
+      }));
+      
+      setHistory(convertedData);
     } catch (error: any) {
       toast({
         title: "Error fetching history",

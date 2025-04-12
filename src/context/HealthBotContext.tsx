@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Message, Symptom, HealthBotState, Analysis, Disease, Doctor } from '../types/health';
 import { symptoms, getSymptomById } from '../data/symptoms';
@@ -7,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from '@/hooks/use-toast';
+import { Json } from '@/integrations/supabase/types';
 
 type HealthBotContextType = {
   state: HealthBotState;
@@ -73,7 +73,7 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, []);
 
-  const saveConversation = async () => {
+  const saveConversation = async (): Promise<void> => {
     if (!user || state.messages.length <= 1) return;
     
     try {
@@ -81,11 +81,10 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         .from('conversation_history')
         .insert({
           user_id: user.id,
-          messages: state.messages,
-          selected_symptoms: state.selectedSymptoms,
-          analysis: state.analysis
-        })
-        .select();
+          messages: state.messages as unknown as Json,
+          selected_symptoms: state.selectedSymptoms as unknown as Json,
+          analysis: state.analysis as unknown as Json
+        });
         
       if (error) throw error;
       
@@ -93,8 +92,6 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         title: "Conversation saved",
         description: "Your conversation has been saved to your history.",
       });
-      
-      return data[0];
     } catch (error: any) {
       toast({
         title: "Error saving conversation",
@@ -303,7 +300,6 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         analysis: analysis
       }));
       
-      // Save conversation after analysis
       if (user) {
         saveConversation();
       }
@@ -369,14 +365,12 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       messages: [...prev.messages, doctorsMessage]
     }));
     
-    // Save conversation after viewing doctors
     if (user) {
       saveConversation();
     }
   };
   
   const resetConversation = () => {
-    // Save conversation before resetting if user is logged in
     if (user && state.messages.length > 1) {
       saveConversation();
     }
