@@ -34,7 +34,7 @@ const HealthChatContainer = () => {
   useEffect(() => {
     if (user && isSoundEnabled && !welcomePlayed.current && state.messages.length > 0) {
       welcomePlayed.current = true;
-      const welcomeMessage = "Welcome to MediAssist Pro. I'm your personal health assistant. How can I help you today?";
+      const welcomeMessage = "Welcome to MediAssist Pro. I'm your personal health assistant. You can tell me about your symptoms, and I'll help analyze possible conditions. You can enable or disable my voice using the sound button in the header.";
       setTimeout(() => {
         speakText(welcomeMessage);
       }, 1000);

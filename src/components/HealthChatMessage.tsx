@@ -18,26 +18,77 @@ const HealthChatMessage: React.FC<HealthChatMessageProps> = ({ message }) => {
   const isHealthBot = message.sender === 'healthbot';
   const hasSpoken = useRef(false);
   
+  // Prepare speech text for different message types
+  const prepareSpeechText = () => {
+    if (!isHealthBot) return '';
+    
+    let speechText = message.text.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
+    
+    // For analysis message, add disease information for better speech
+    if (message.isAnalysis && state.analysis && state.analysis.possibleDiseases.length > 0) {
+      // Include disease information in speech
+      const diseaseNames = state.analysis.possibleDiseases.map(d => 
+        `${d.name} with a ${d.matchPercentage}% match`
+      ).join(', ');
+      
+      speechText += ` Based on your symptoms, I've identified these possible conditions: ${diseaseNames}.`;
+    }
+    
+    // For disease details message
+    if (state.selectedDisease && message.text.includes(`information about ${state.selectedDisease.name}`)) {
+      const disease = state.selectedDisease;
+      const symptoms = disease.commonSymptoms.join(', ');
+      
+      speechText += ` Common symptoms include ${symptoms}. The severity is ${disease.severity}.`;
+    }
+    
+    // For prescription message
+    if (state.selectedDisease && state.viewingPrescription && message.text.includes('medication details')) {
+      const medications = state.selectedDisease.medications;
+      
+      speechText += ` Recommended medications include: `;
+      medications.forEach((med, idx) => {
+        speechText += `${med.name}, dosage: ${med.dosage}, to be taken ${med.frequency} for ${med.duration}.`;
+        if (idx < medications.length - 1) speechText += ' Also, ';
+      });
+      
+      speechText += ' Remember, always consult a healthcare professional before taking any medication.';
+    }
+    
+    // For doctors message
+    if (state.selectedDisease && state.viewingDoctors && message.text.includes('specialists who can help')) {
+      const doctors = state.selectedDisease.specialist.recommendedDoctors;
+      const availableDoctors = doctors.filter(doc => doc.available);
+      
+      if (availableDoctors.length > 0) {
+        speechText += ` Available specialists include: `;
+        availableDoctors.slice(0, 2).forEach((doc, idx) => {
+          speechText += `${doc.name}, a ${doc.specialty} with ${doc.experience} of experience.`;
+          if (idx < Math.min(availableDoctors.length, 2) - 1) speechText += ' Also, ';
+        });
+      }
+    }
+    
+    return speechText;
+  };
+  
   // Speak bot messages when they are displayed
   useEffect(() => {
-    if (isHealthBot && !message.isAnalysis && isSoundEnabled && !hasSpoken.current) {
+    if (isHealthBot && isSoundEnabled && !hasSpoken.current) {
       // Mark this message as spoken to prevent repeating
       hasSpoken.current = true;
       
       // Slight delay to ensure UI is updated first
       const timer = setTimeout(() => {
-        // Only speak clean text without excessive whitespace
-        const cleanText = message.text
-          .replace(/\n+/g, ' ') // Replace multiple newlines with a single space
-          .replace(/\s+/g, ' ') // Replace multiple spaces with a single space
-          .trim();
-        
-        speakText(cleanText);
+        const speechText = prepareSpeechText();
+        if (speechText) {
+          speakText(speechText);
+        }
       }, 300);
       
       return () => clearTimeout(timer);
     }
-  }, [isHealthBot, message.text, message.isAnalysis, speakText, isSoundEnabled]);
+  }, [isHealthBot, message.text, message.isAnalysis, isSoundEnabled, state.selectedDisease, state.viewingPrescription, state.viewingDoctors]);
   
   return (
     <div className={`mb-4 ${isHealthBot ? '' : 'ml-auto max-w-[80%]'}`}>

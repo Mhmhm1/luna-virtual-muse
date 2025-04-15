@@ -15,19 +15,20 @@ const SoundToggle: React.FC = () => {
           <Button 
             variant="ghost" 
             size="icon" 
-            className={`rounded-full ${isSpeaking ? 'animate-pulse' : ''}`}
+            className={`rounded-full transition-all duration-300 ${isSpeaking ? 'animate-pulse bg-emerald-50' : ''}`}
             onClick={toggleSound}
             aria-label={isSoundEnabled ? 'Disable sound' : 'Enable sound'}
           >
             {isSoundEnabled ? (
-              <Volume2 className={`h-5 w-5 ${isSpeaking ? 'text-emerald-500' : 'text-emerald-700'}`} />
+              <Volume2 className={`h-5 w-5 transition-colors ${isSpeaking ? 'text-emerald-500' : 'text-emerald-700'}`} />
             ) : (
               <VolumeX className="h-5 w-5 text-emerald-700" />
             )}
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>{isSoundEnabled ? 'Disable sound' : 'Enable sound'}</p>
+          <p>{isSoundEnabled ? 'Disable voice' : 'Enable voice'}</p>
+          {isSpeaking && isSoundEnabled && <p className="text-xs text-emerald-500">Speaking...</p>}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

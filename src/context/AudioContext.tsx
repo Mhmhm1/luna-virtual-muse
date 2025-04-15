@@ -71,47 +71,111 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     stopSpeaking();
     
     try {
-      const newUtterance = new SpeechSynthesisUtterance(text);
-      setUtterance(newUtterance);
+      // Break down long text into manageable chunks to prevent browser issues
+      const textChunks = splitTextIntoChunks(text, 200);
       
-      // Configure voice settings
-      newUtterance.rate = 1.0; // Speed of speech
-      newUtterance.pitch = 1.0; // Pitch of voice
-      newUtterance.volume = 1.0; // Volume
+      if (textChunks.length === 0) return;
       
-      // Find a female voice if available
-      const voices = speechSynthesis.getVoices();
-      const femaleVoice = voices.find(voice => 
-        voice.name.includes('female') || 
-        voice.name.includes('woman') || 
-        voice.name.includes('girl') ||
-        voice.name.includes('Samantha') ||
-        voice.name.includes('Google UK English Female')
-      );
+      setIsSpeaking(true);
       
-      if (femaleVoice) {
-        newUtterance.voice = femaleVoice;
-      }
+      // Process each chunk sequentially
+      speakTextChunks(textChunks, 0, speechSynthesis);
       
-      // Event handlers
-      newUtterance.onstart = () => setIsSpeaking(true);
-      newUtterance.onend = () => {
-        setIsSpeaking(false);
-        setUtterance(null);
-      };
-      newUtterance.onerror = (event) => {
-        console.error('TTS Error:', event);
-        setIsSpeaking(false);
-        setUtterance(null);
-      };
-      
-      // Speak the text
-      speechSynthesis.speak(newUtterance);
     } catch (error) {
       console.error('TTS Error:', error);
       setIsSpeaking(false);
-      setUtterance(null);
     }
+  };
+  
+  // Helper function to split text into chunks
+  const splitTextIntoChunks = (text: string, maxLength: number): string[] => {
+    const chunks: string[] = [];
+    const sentences = text.split(/(?<=[.!?])\s+/);
+    
+    let currentChunk = '';
+    
+    for (const sentence of sentences) {
+      if (currentChunk.length + sentence.length > maxLength) {
+        if (currentChunk) {
+          chunks.push(currentChunk.trim());
+          currentChunk = '';
+        }
+        
+        // If a single sentence is longer than maxLength, split it further
+        if (sentence.length > maxLength) {
+          const words = sentence.split(' ');
+          let tempChunk = '';
+          
+          for (const word of words) {
+            if (tempChunk.length + word.length + 1 > maxLength) {
+              chunks.push(tempChunk.trim());
+              tempChunk = word;
+            } else {
+              tempChunk += ' ' + word;
+            }
+          }
+          
+          if (tempChunk) {
+            currentChunk = tempChunk;
+          }
+        } else {
+          currentChunk = sentence;
+        }
+      } else {
+        currentChunk += ' ' + sentence;
+      }
+    }
+    
+    if (currentChunk) {
+      chunks.push(currentChunk.trim());
+    }
+    
+    return chunks;
+  };
+  
+  // Function to speak text chunks sequentially
+  const speakTextChunks = (chunks: string[], index: number, synth: SpeechSynthesis) => {
+    if (index >= chunks.length) {
+      setIsSpeaking(false);
+      return;
+    }
+    
+    const chunk = chunks[index];
+    const newUtterance = new SpeechSynthesisUtterance(chunk);
+    setUtterance(newUtterance);
+    
+    // Configure voice settings
+    newUtterance.rate = 1.0; // Speed of speech
+    newUtterance.pitch = 1.0; // Pitch of voice
+    newUtterance.volume = 1.0; // Volume
+    
+    // Find a female voice if available
+    const voices = synth.getVoices();
+    const femaleVoice = voices.find(voice => 
+      voice.name.includes('female') || 
+      voice.name.includes('woman') || 
+      voice.name.includes('girl') ||
+      voice.name.includes('Samantha') ||
+      voice.name.includes('Google UK English Female')
+    );
+    
+    if (femaleVoice) {
+      newUtterance.voice = femaleVoice;
+    }
+    
+    // Event handlers
+    newUtterance.onend = () => {
+      // Move to the next chunk when this one is done
+      speakTextChunks(chunks, index + 1, synth);
+    };
+    
+    newUtterance.onerror = (event) => {
+      console.error('TTS Error:', event);
+      setIsSpeaking(false);
+    };
+    
+    // Speak the text
+    synth.speak(newUtterance);
   };
 
   const stopSpeaking = () => {
