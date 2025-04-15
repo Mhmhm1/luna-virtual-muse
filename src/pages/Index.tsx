@@ -1,14 +1,27 @@
+
 import React, { useRef, useEffect } from 'react';
 import { LunaProvider, useLuna } from '@/context/LunaContext';
 import EmptyConversation from '@/components/EmptyConversation';
 import { useAuth } from '@/context/AuthContext';
 import { useAudio } from '@/context/AudioContext';
+import { Button } from '@/components/ui/button';
+import { RotateCcw } from 'lucide-react';
+import HealthChatHeader from '@/components/HealthChatHeader';
+import HealthChatMessage from '@/components/HealthChatMessage';
+import HealthChatInput from '@/components/HealthChatInput';
+import SymptomSelector from '@/components/SymptomSelector';
+import HealthDataChart from '@/components/HealthDataChart';
 
 const LunaChat = () => {
-  const { state, sendMessage, lunaStartConversation } = useLuna();
+  const { state, sendMessage, lunaStartConversation, resetConversation } = useLuna();
   const { user } = useAuth();
   const { speakText, isSoundEnabled } = useAudio();
   const welcomePlayed = useRef(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [state.messages]);
 
   useEffect(() => {
     if (user && isSoundEnabled && !welcomePlayed.current && state.messages.length === 0) {
@@ -23,7 +36,7 @@ const LunaChat = () => {
         lunaStartConversation();
       }, 1000);
     }
-  }, [user, isSoundEnabled, state.messages.length]);
+  }, [user, isSoundEnabled, state.messages.length, speakText, lunaStartConversation]);
 
   if (state.messages.length === 0) {
     return (
