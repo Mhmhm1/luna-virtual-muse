@@ -1,6 +1,7 @@
 
 import React, { useRef, useEffect } from 'react';
 import { LunaProvider, useLuna } from '@/context/LunaContext';
+import { HealthBotProvider } from '@/context/HealthBotContext';
 import EmptyConversation from '@/components/EmptyConversation';
 import { useAuth } from '@/context/AuthContext';
 import { useAudio } from '@/context/AudioContext';
@@ -11,6 +12,7 @@ import HealthChatMessage from '@/components/HealthChatMessage';
 import HealthChatInput from '@/components/HealthChatInput';
 import SymptomSelector from '@/components/SymptomSelector';
 import HealthDataChart from '@/components/HealthDataChart';
+import { Message as HealthMessage } from '@/types/health';
 
 const LunaChat = () => {
   const { state, sendMessage, lunaStartConversation, resetConversation } = useLuna();
@@ -38,6 +40,17 @@ const LunaChat = () => {
     }
   }, [user, isSoundEnabled, state.messages.length, speakText, lunaStartConversation]);
 
+  // Convert Luna messages to HealthBot message format
+  const convertToHealthMessages = (): HealthMessage[] => {
+    return state.messages.map(msg => ({
+      id: msg.id,
+      sender: msg.sender === 'luna' ? 'healthbot' : 'user',
+      text: msg.text,
+      timestamp: msg.timestamp,
+      isAnalysis: false
+    }));
+  };
+
   if (state.messages.length === 0) {
     return (
       <EmptyConversation 
@@ -46,6 +59,8 @@ const LunaChat = () => {
       />
     );
   }
+
+  const healthMessages = convertToHealthMessages();
 
   return (
     <div className="flex flex-col md:flex-row gap-4 h-screen p-4">
@@ -66,7 +81,7 @@ const LunaChat = () => {
           
           <div className="flex-1 overflow-y-auto p-4 scroll-hidden bg-gray-50">
             <div className="flex flex-col">
-              {state.messages.map((message) => (
+              {healthMessages.map((message) => (
                 <HealthChatMessage 
                   key={message.id} 
                   message={message} 
@@ -103,9 +118,11 @@ const LunaChat = () => {
 const Index = () => {
   return (
     <LunaProvider>
-      <div className="min-h-screen bg-gradient-radial from-luna-50 via-white to-white">
-        <LunaChat />
-      </div>
+      <HealthBotProvider>
+        <div className="min-h-screen bg-gradient-radial from-luna-50 via-white to-white">
+          <LunaChat />
+        </div>
+      </HealthBotProvider>
     </LunaProvider>
   );
 };
