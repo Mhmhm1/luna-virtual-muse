@@ -2,11 +2,11 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Volume2, VolumeX } from 'lucide-react';
-import { useAudio } from '@/context/AudioContext';
+import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const SoundToggle: React.FC = () => {
-  const { isSoundEnabled, toggleSound, isSpeaking } = useAudio();
+  const { isSoundEnabled, toggleSound, isSpeaking } = useTextToSpeech();
 
   return (
     <TooltipProvider>
