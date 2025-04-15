@@ -1,67 +1,54 @@
 
 import React, { useRef, useEffect } from 'react';
-import { LunaProvider, useLuna } from '@/context/LunaContext';
-import { HealthBotProvider } from '@/context/HealthBotContext';
-import EmptyConversation from '@/components/EmptyConversation';
-import { useAuth } from '@/context/AuthContext';
-import { useAudio } from '@/context/AudioContext';
-import { Button } from '@/components/ui/button';
-import { RotateCcw } from 'lucide-react';
+import { HealthBotProvider, useHealthBot } from '@/context/HealthBotContext';
 import HealthChatHeader from '@/components/HealthChatHeader';
 import HealthChatMessage from '@/components/HealthChatMessage';
 import HealthChatInput from '@/components/HealthChatInput';
 import SymptomSelector from '@/components/SymptomSelector';
 import HealthDataChart from '@/components/HealthDataChart';
-import { Message as HealthMessage } from '@/types/health';
+import { Button } from '@/components/ui/button';
+import { RotateCcw } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
+import { useAudio } from '@/context/AudioContext';
 
-const LunaChat = () => {
-  const { state, sendMessage, lunaStartConversation, resetConversation } = useLuna();
-  const { user } = useAuth();
+const HealthChatContainer = () => {
+  const { state, resetConversation } = useHealthBot();
+  const { user, loading: authLoading } = useAuth();
   const { speakText, isSoundEnabled } = useAudio();
-  const welcomePlayed = useRef(false);
+  const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
+  const welcomePlayed = useRef(false);
+  
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [state.messages]);
-
+  
   useEffect(() => {
-    if (user && isSoundEnabled && !welcomePlayed.current && state.messages.length === 0) {
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [user, authLoading, navigate]);
+  
+  // Play welcome message when component loads
+  useEffect(() => {
+    if (user && isSoundEnabled && !welcomePlayed.current && state.messages.length > 0) {
       welcomePlayed.current = true;
-      
-      const welcomeMessage = user.user_metadata?.first_name 
-        ? `Hello, I'm Luna, your personal AI companion! I'm excited to meet you, ${user.user_metadata.first_name}. How are you feeling today? I'm here to listen, chat, and support you in whatever mood you're in.`
-        : `Hello! I'm Luna, your personal AI companion. I'm thrilled to meet you! How are you feeling today? I'm here to listen, chat, and support you in whatever mood you're in.`;
-      
+      const welcomeMessage = "Welcome to MediAssist Pro. I'm your personal health assistant. You can tell me about your symptoms, and I'll help analyze possible conditions. You can enable or disable my voice using the sound button in the header.";
       setTimeout(() => {
         speakText(welcomeMessage);
-        lunaStartConversation();
       }, 1000);
     }
-  }, [user, isSoundEnabled, state.messages.length, speakText, lunaStartConversation]);
-
-  // Convert Luna messages to HealthBot message format
-  const convertToHealthMessages = (): HealthMessage[] => {
-    return state.messages.map(msg => ({
-      id: msg.id,
-      sender: msg.sender === 'luna' ? 'healthbot' : 'user',
-      text: msg.text,
-      timestamp: msg.timestamp,
-      isAnalysis: false
-    }));
-  };
-
-  if (state.messages.length === 0) {
+  }, [user, isSoundEnabled, speakText, state.messages]);
+  
+  if (authLoading) {
     return (
-      <EmptyConversation 
-        userName={user?.user_metadata?.first_name} 
-        onStartConversation={lunaStartConversation} 
-      />
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-600"></div>
+      </div>
     );
   }
-
-  const healthMessages = convertToHealthMessages();
-
+  
   return (
     <div className="flex flex-col md:flex-row gap-4 h-screen p-4">
       <div className="flex-1 flex flex-col">
@@ -81,7 +68,7 @@ const LunaChat = () => {
           
           <div className="flex-1 overflow-y-auto p-4 scroll-hidden bg-gray-50">
             <div className="flex flex-col">
-              {healthMessages.map((message) => (
+              {state.messages.map((message) => (
                 <HealthChatMessage 
                   key={message.id} 
                   message={message} 
@@ -117,13 +104,11 @@ const LunaChat = () => {
 
 const Index = () => {
   return (
-    <LunaProvider>
-      <HealthBotProvider>
-        <div className="min-h-screen bg-gradient-radial from-luna-50 via-white to-white">
-          <LunaChat />
-        </div>
-      </HealthBotProvider>
-    </LunaProvider>
+    <HealthBotProvider>
+      <div className="min-h-screen bg-gradient-radial from-emerald-50 via-white to-white">
+        <HealthChatContainer />
+      </div>
+    </HealthBotProvider>
   );
 };
 
