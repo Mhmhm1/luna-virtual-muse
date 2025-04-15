@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Message, Disease } from '@/types/health';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -14,20 +14,30 @@ interface HealthChatMessageProps {
 
 const HealthChatMessage: React.FC<HealthChatMessageProps> = ({ message }) => {
   const { state, selectDisease, viewDoctorsList, viewPrescription } = useHealthBot();
-  const { speakText } = useAudio();
+  const { speakText, isSoundEnabled } = useAudio();
   const isHealthBot = message.sender === 'healthbot';
+  const hasSpoken = useRef(false);
   
   // Speak bot messages when they are displayed
   useEffect(() => {
-    if (isHealthBot && !message.isAnalysis) {
+    if (isHealthBot && !message.isAnalysis && isSoundEnabled && !hasSpoken.current) {
+      // Mark this message as spoken to prevent repeating
+      hasSpoken.current = true;
+      
       // Slight delay to ensure UI is updated first
       const timer = setTimeout(() => {
-        speakText(message.text);
+        // Only speak clean text without excessive whitespace
+        const cleanText = message.text
+          .replace(/\n+/g, ' ') // Replace multiple newlines with a single space
+          .replace(/\s+/g, ' ') // Replace multiple spaces with a single space
+          .trim();
+        
+        speakText(cleanText);
       }, 300);
       
       return () => clearTimeout(timer);
     }
-  }, [isHealthBot, message.text, message.isAnalysis, speakText]);
+  }, [isHealthBot, message.text, message.isAnalysis, speakText, isSoundEnabled]);
   
   return (
     <div className={`mb-4 ${isHealthBot ? '' : 'ml-auto max-w-[80%]'}`}>

@@ -17,6 +17,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isSoundEnabled, setIsSoundEnabled] = useLocalStorage<boolean>('healthbot-sound-enabled', true);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [speechSynthesis, setSpeechSynthesis] = useState<SpeechSynthesis | null>(null);
+  const [utterance, setUtterance] = useState<SpeechSynthesisUtterance | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -24,9 +25,39 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (typeof window !== 'undefined') {
       setSpeechSynthesis(window.speechSynthesis);
     }
+
+    // Clean up function to stop speaking when component unmounts
+    return () => {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
   }, []);
 
+  // Ensure voices are loaded
+  useEffect(() => {
+    if (!speechSynthesis) return;
+    
+    // Check if voices are already loaded
+    if (speechSynthesis.getVoices().length === 0) {
+      // Set up event listener for when voices change (become available)
+      const voicesChangedHandler = () => {
+        // Just trigger a re-render when voices are loaded
+        setSpeechSynthesis(window.speechSynthesis);
+      };
+      
+      speechSynthesis.addEventListener('voiceschanged', voicesChangedHandler);
+      
+      return () => {
+        speechSynthesis.removeEventListener('voiceschanged', voicesChangedHandler);
+      };
+    }
+  }, [speechSynthesis]);
+
   const toggleSound = () => {
+    if (isSpeaking) {
+      stopSpeaking();
+    }
     setIsSoundEnabled(!isSoundEnabled);
     toast({
       description: !isSoundEnabled ? "Sound notifications enabled" : "Sound notifications disabled",
@@ -40,12 +71,13 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     stopSpeaking();
     
     try {
-      const utterance = new SpeechSynthesisUtterance(text);
+      const newUtterance = new SpeechSynthesisUtterance(text);
+      setUtterance(newUtterance);
       
       // Configure voice settings
-      utterance.rate = 1.0; // Speed of speech
-      utterance.pitch = 1.0; // Pitch of voice
-      utterance.volume = 1.0; // Volume
+      newUtterance.rate = 1.0; // Speed of speech
+      newUtterance.pitch = 1.0; // Pitch of voice
+      newUtterance.volume = 1.0; // Volume
       
       // Find a female voice if available
       const voices = speechSynthesis.getVoices();
@@ -58,19 +90,27 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       );
       
       if (femaleVoice) {
-        utterance.voice = femaleVoice;
+        newUtterance.voice = femaleVoice;
       }
       
       // Event handlers
-      utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => setIsSpeaking(false);
-      utterance.onerror = () => setIsSpeaking(false);
+      newUtterance.onstart = () => setIsSpeaking(true);
+      newUtterance.onend = () => {
+        setIsSpeaking(false);
+        setUtterance(null);
+      };
+      newUtterance.onerror = (event) => {
+        console.error('TTS Error:', event);
+        setIsSpeaking(false);
+        setUtterance(null);
+      };
       
       // Speak the text
-      speechSynthesis.speak(utterance);
+      speechSynthesis.speak(newUtterance);
     } catch (error) {
       console.error('TTS Error:', error);
       setIsSpeaking(false);
+      setUtterance(null);
     }
   };
 
@@ -78,6 +118,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (speechSynthesis) {
       speechSynthesis.cancel();
       setIsSpeaking(false);
+      setUtterance(null);
     }
   };
 

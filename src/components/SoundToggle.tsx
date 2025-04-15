@@ -6,7 +6,7 @@ import { useAudio } from '@/context/AudioContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const SoundToggle: React.FC = () => {
-  const { isSoundEnabled, toggleSound } = useAudio();
+  const { isSoundEnabled, toggleSound, isSpeaking } = useAudio();
 
   return (
     <TooltipProvider>
@@ -15,11 +15,12 @@ const SoundToggle: React.FC = () => {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-full" 
+            className={`rounded-full ${isSpeaking ? 'animate-pulse' : ''}`}
             onClick={toggleSound}
+            aria-label={isSoundEnabled ? 'Disable sound' : 'Enable sound'}
           >
             {isSoundEnabled ? (
-              <Volume2 className="h-5 w-5 text-emerald-700" />
+              <Volume2 className={`h-5 w-5 ${isSpeaking ? 'text-emerald-500' : 'text-emerald-700'}`} />
             ) : (
               <VolumeX className="h-5 w-5 text-emerald-700" />
             )}

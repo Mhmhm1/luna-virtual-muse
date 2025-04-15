@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect } from 'react';
 import { HealthBotProvider, useHealthBot } from '@/context/HealthBotContext';
 import HealthChatHeader from '@/components/HealthChatHeader';
@@ -9,12 +10,15 @@ import { Button } from '@/components/ui/button';
 import { RotateCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useAudio } from '@/context/AudioContext';
 
 const HealthChatContainer = () => {
   const { state, resetConversation } = useHealthBot();
   const { user, loading: authLoading } = useAuth();
+  const { speakText, isSoundEnabled } = useAudio();
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const welcomePlayed = useRef(false);
   
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -25,6 +29,17 @@ const HealthChatContainer = () => {
       navigate('/auth');
     }
   }, [user, authLoading, navigate]);
+  
+  // Play welcome message when component loads
+  useEffect(() => {
+    if (user && isSoundEnabled && !welcomePlayed.current && state.messages.length > 0) {
+      welcomePlayed.current = true;
+      const welcomeMessage = "Welcome to MediAssist Pro. I'm your personal health assistant. How can I help you today?";
+      setTimeout(() => {
+        speakText(welcomeMessage);
+      }, 1000);
+    }
+  }, [user, isSoundEnabled, speakText, state.messages]);
   
   if (authLoading) {
     return (
