@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { useHealthBot } from '@/context/HealthBotContext';
 import ConversationHistory from './ConversationHistory';
 import SoundToggle from './SoundToggle';
+import VoiceInput from './VoiceInput';
 
 const HealthChatHeader: React.FC = () => {
   const { user, signOut } = useAuth();
@@ -30,6 +31,7 @@ const HealthChatHeader: React.FC = () => {
       </div>
       
       <div className="flex items-center gap-2">
+        <VoiceInput />
         <SoundToggle />
         
         {user ? (
