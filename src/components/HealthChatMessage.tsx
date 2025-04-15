@@ -67,9 +67,7 @@ const HealthChatMessage: React.FC<HealthChatMessageProps> = ({ message }) => {
   }, [isHealthBot, message.text, message.isAnalysis, isSoundEnabled, state.selectedDisease, state.viewingPrescription]);
   
   return (
-    <div className={`mb-4 ${isHealthBot ? '' : 'ml-auto max
-
--w-[80%]'}`}>
+    <div className={`mb-4 ${isHealthBot ? '' : 'ml-auto max-w-[80%]'}`}>
       <div className={`flex ${isHealthBot ? '' : 'justify-end'}`}>
         <div className={`flex gap-3 ${isHealthBot ? 'items-start' : 'items-start flex-row-reverse'}`}>
           <Avatar className={`h-8 w-8 ${isHealthBot ? 'bg-emerald-100' : 'bg-blue-100'}`}>
@@ -85,7 +83,7 @@ const HealthChatMessage: React.FC<HealthChatMessageProps> = ({ message }) => {
             )}
           </Avatar>
           
-          <div className={`max-w-[calc(100%-40px)]`}>
+          <div className="max-w-[calc(100%-40px)]">
             <div className={`px-4 py-2.5 rounded-xl ${
               isHealthBot 
                 ? 'bg-emerald-50 text-emerald-900 border border-emerald-100' 
