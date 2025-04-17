@@ -8,8 +8,11 @@ import { useHealthBot } from '@/context/HealthBotContext';
 import ConversationHistory from './ConversationHistory';
 import SoundToggle from './SoundToggle';
 import VoiceInput from './VoiceInput';
+import LanguageSelector from './LanguageSelector';
+import { useTranslation } from 'react-i18next';
 
 const HealthChatHeader: React.FC = () => {
+  const { t } = useTranslation();
   const { user, signOut } = useAuth();
   const { saveConversation } = useHealthBot();
   const navigate = useNavigate();
@@ -25,14 +28,15 @@ const HealthChatHeader: React.FC = () => {
           <Stethoscope className="h-5 w-5" />
         </div>
         <div>
-          <h2 className="font-semibold text-lg text-emerald-800">MediAssist Pro</h2>
-          <p className="text-xs text-emerald-600">Your personal health assistant</p>
+          <h2 className="font-semibold text-lg text-emerald-800">{t('app_name')}</h2>
+          <p className="text-xs text-emerald-600">{t('app_description')}</p>
         </div>
       </div>
       
       <div className="flex items-center gap-2">
         <VoiceInput />
         <SoundToggle />
+        <LanguageSelector />
         
         {user ? (
           <>
@@ -40,7 +44,7 @@ const HealthChatHeader: React.FC = () => {
               variant="ghost" 
               size="icon" 
               className="rounded-full" 
-              title="Save Conversation"
+              title={t('save_conversation')}
               onClick={handleSaveConversation}
             >
               <Save className="h-5 w-5 text-emerald-700" />
@@ -52,7 +56,7 @@ const HealthChatHeader: React.FC = () => {
               variant="ghost" 
               size="icon" 
               className="rounded-full" 
-              title="Sign Out"
+              title={t('sign_out')}
               onClick={() => signOut()}
             >
               <LogOut className="h-5 w-5 text-emerald-700" />
@@ -66,7 +70,7 @@ const HealthChatHeader: React.FC = () => {
             onClick={() => navigate('/auth')}
           >
             <LogIn className="h-4 w-4 mr-2" />
-            Sign In
+            {t('sign_in')}
           </Button>
         )}
       </div>

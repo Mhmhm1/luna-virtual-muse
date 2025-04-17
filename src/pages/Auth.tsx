@@ -8,8 +8,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { User, LogIn } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from '@/components/LanguageSelector';
 
 const Auth = () => {
+  const { t } = useTranslation();
   const { signIn, signUp, loading } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -31,34 +34,38 @@ const Auth = () => {
     <div className="flex min-h-screen items-center justify-center bg-gradient-radial from-emerald-50 via-white to-white p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-emerald-700">MediAssist Pro</h1>
-          <p className="text-emerald-600 mt-2">Your personal health assistant</p>
+          <h1 className="text-3xl font-bold text-emerald-700">{t('app_name')}</h1>
+          <p className="text-emerald-600 mt-2">{t('app_description')}</p>
+        </div>
+        
+        <div className="absolute top-4 right-4">
+          <LanguageSelector />
         </div>
         
         <Tabs defaultValue="signin" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-6">
             <TabsTrigger value="signin" className="flex items-center justify-center gap-2">
               <LogIn className="h-4 w-4" />
-              Sign In
+              {t('sign_in')}
             </TabsTrigger>
             <TabsTrigger value="signup" className="flex items-center justify-center gap-2">
               <User className="h-4 w-4" />
-              Sign Up
+              {t('sign_up')}
             </TabsTrigger>
           </TabsList>
           
           <TabsContent value="signin">
             <Card>
               <CardHeader>
-                <CardTitle>Sign In</CardTitle>
+                <CardTitle>{t('sign_in')}</CardTitle>
                 <CardDescription>
-                  Enter your credentials to access your account.
+                  {t('enter_credentials')}
                 </CardDescription>
               </CardHeader>
               <form onSubmit={handleSignIn}>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
+                    <Label htmlFor="signin-email">{t('email')}</Label>
                     <Input 
                       id="signin-email" 
                       type="email" 
@@ -69,7 +76,7 @@ const Auth = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
+                    <Label htmlFor="signin-password">{t('password')}</Label>
                     <Input 
                       id="signin-password" 
                       type="password"
@@ -81,7 +88,7 @@ const Auth = () => {
                 </CardContent>
                 <CardFooter className="flex flex-col">
                   <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700" disabled={loading}>
-                    {loading ? 'Signing In...' : 'Sign In'}
+                    {loading ? t('signing_in') : t('sign_in')}
                   </Button>
                 </CardFooter>
               </form>
@@ -91,16 +98,16 @@ const Auth = () => {
           <TabsContent value="signup">
             <Card>
               <CardHeader>
-                <CardTitle>Create Account</CardTitle>
+                <CardTitle>{t('create_account')}</CardTitle>
                 <CardDescription>
-                  Create a new account to get started.
+                  {t('create_account_desc')}
                 </CardDescription>
               </CardHeader>
               <form onSubmit={handleSignUp}>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="first-name">First Name</Label>
+                      <Label htmlFor="first-name">{t('first_name')}</Label>
                       <Input 
                         id="first-name" 
                         placeholder="John" 
@@ -110,7 +117,7 @@ const Auth = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="last-name">Last Name</Label>
+                      <Label htmlFor="last-name">{t('last_name')}</Label>
                       <Input 
                         id="last-name" 
                         placeholder="Doe" 
@@ -121,7 +128,7 @@ const Auth = () => {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
+                    <Label htmlFor="signup-email">{t('email')}</Label>
                     <Input 
                       id="signup-email" 
                       type="email" 
@@ -132,7 +139,7 @@ const Auth = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
+                    <Label htmlFor="signup-password">{t('password')}</Label>
                     <Input 
                       id="signup-password" 
                       type="password"
@@ -144,7 +151,7 @@ const Auth = () => {
                 </CardContent>
                 <CardFooter>
                   <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700" disabled={loading}>
-                    {loading ? 'Creating Account...' : 'Create Account'}
+                    {loading ? t('creating_account') : t('create_account')}
                   </Button>
                 </CardFooter>
               </form>
@@ -158,7 +165,7 @@ const Auth = () => {
             className="text-emerald-700"
             onClick={() => navigate('/')}
           >
-            Back to Home
+            {t('back_to_home')}
           </Button>
         </div>
       </div>

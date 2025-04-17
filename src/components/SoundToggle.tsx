@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Volume2, VolumeX, Settings } from 'lucide-react';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
+import { useTranslation } from 'react-i18next';
 import { 
   Tooltip, 
   TooltipContent, 
@@ -21,6 +22,7 @@ import {
 import { Slider } from "@/components/ui/slider";
 
 const SoundToggle: React.FC = () => {
+  const { t } = useTranslation();
   const { 
     isSoundEnabled, 
     toggleSound, 
@@ -50,7 +52,7 @@ const SoundToggle: React.FC = () => {
               size="icon" 
               className={`rounded-full transition-all duration-300 ${isSpeaking ? 'animate-pulse bg-emerald-50' : ''}`}
               onClick={toggleSound}
-              aria-label={isSoundEnabled ? 'Disable sound' : 'Enable sound'}
+              aria-label={isSoundEnabled ? t('disable_voice') : t('enable_voice')}
             >
               {isSoundEnabled ? (
                 <Volume2 className={`h-5 w-5 transition-colors ${isSpeaking ? 'text-emerald-500' : 'text-emerald-700'}`} />
@@ -71,16 +73,16 @@ const SoundToggle: React.FC = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56">
-                  <DropdownMenuLabel>Voice Settings</DropdownMenuLabel>
+                  <DropdownMenuLabel>{t('voice_settings')}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>
                     <DropdownMenuItem onClick={() => stopSpeaking()}>
-                      Stop Speaking
+                      {t('stop_speaking')}
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                   
                   <DropdownMenuSeparator />
-                  <DropdownMenuLabel>Select Voice</DropdownMenuLabel>
+                  <DropdownMenuLabel>{t('select_voice')}</DropdownMenuLabel>
                   <div className="max-h-[200px] overflow-y-auto px-2">
                     {englishVoices.map(voice => (
                       <DropdownMenuItem 
@@ -94,7 +96,7 @@ const SoundToggle: React.FC = () => {
                     
                     {englishVoices.length === 0 && (
                       <div className="text-sm text-muted-foreground p-2">
-                        No English voices available
+                        {t('no_english_voices')}
                       </div>
                     )}
                   </div>
@@ -104,8 +106,8 @@ const SoundToggle: React.FC = () => {
           </div>
         </TooltipTrigger>
         <TooltipContent>
-          <p>{isSoundEnabled ? 'Disable voice' : 'Enable voice'}</p>
-          {isSpeaking && isSoundEnabled && <p className="text-xs text-emerald-500">Speaking...</p>}
+          <p>{isSoundEnabled ? t('disable_voice') : t('enable_voice')}</p>
+          {isSpeaking && isSoundEnabled && <p className="text-xs text-emerald-500">{t('speaking')}</p>}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

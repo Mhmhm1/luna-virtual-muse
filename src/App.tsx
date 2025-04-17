@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import { AuthProvider } from "./context/AuthContext";
 import { AudioProvider } from "./context/AudioContext";
+import '@/i18n'; // Import i18n initialization
 
 const queryClient = new QueryClient();
 
