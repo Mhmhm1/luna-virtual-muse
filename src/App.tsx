@@ -8,7 +8,6 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import { AuthProvider } from "./context/AuthContext";
-import { AudioProvider } from "./context/AudioContext";
 import '@/i18n'; // Import i18n initialization
 
 const queryClient = new QueryClient();
@@ -18,7 +17,6 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          {/* Moving AudioProvider inside each route to ensure it's always within HealthBotProvider */}
           <TooltipProvider>
             <Toaster />
             <Sonner />

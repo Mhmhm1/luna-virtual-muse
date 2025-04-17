@@ -1,27 +1,26 @@
-import { useLocation } from "react-router-dom";
-import { useEffect } from "react";
 
-const NotFound = () => {
-  const location = useLocation();
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { AudioProvider } from "@/context/AudioContext";
 
-  useEffect(() => {
-    console.error(
-      "404 Error: User attempted to access non-existent route:",
-      location.pathname
-    );
-  }, [location.pathname]);
+export default function NotFound() {
+  const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">404</h1>
-        <p className="text-xl text-gray-600 mb-4">Oops! Page not found</p>
-        <a href="/" className="text-blue-500 hover:text-blue-700 underline">
-          Return to Home
-        </a>
+    <AudioProvider>
+      <div className="flex h-screen items-center justify-center bg-gradient-radial from-emerald-50 via-white to-white">
+        <div className="text-center">
+          <h1 className="text-6xl font-bold text-emerald-700">404</h1>
+          <h2 className="mt-2 text-2xl font-medium text-emerald-600">Page Not Found</h2>
+          <p className="mt-4 text-gray-600">Sorry, the page you are looking for does not exist.</p>
+          <Button 
+            className="mt-6 bg-emerald-600 hover:bg-emerald-700"
+            onClick={() => navigate('/')}
+          >
+            Go Home
+          </Button>
+        </div>
       </div>
-    </div>
+    </AudioProvider>
   );
-};
-
-export default NotFound;
+}

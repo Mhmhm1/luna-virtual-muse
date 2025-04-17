@@ -13,34 +13,41 @@ interface AudioContextType {
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
+// Safe hook to get HealthBot state if available, returns null if not
+const useSafeHealthBot = () => {
+  try {
+    // Dynamically import to avoid direct dependency
+    const HealthBotContext = require('@/context/HealthBotContext');
+    if (typeof HealthBotContext.useHealthBot !== 'function') {
+      return null;
+    }
+    
+    try {
+      return HealthBotContext.useHealthBot();
+    } catch (e) {
+      // HealthBotProvider not available in current component tree
+      console.log('HealthBot context not available in current component tree');
+      return null;
+    }
+  } catch (e) {
+    // Module not found or other error
+    console.log('HealthBot module not available');
+    return null;
+  }
+};
+
 export const AudioProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const tts = useTextToSpeech();
   const { i18n } = useTranslation();
-  
-  // We'll check if HealthBotContext is available and use it if it is
-  let healthBotState = null;
-  try {
-    // Try to import and use HealthBotContext, but don't fail if it's not available
-    const { useHealthBot } = require('@/context/HealthBotContext');
-    if (typeof useHealthBot === 'function') {
-      try {
-        const healthBot = useHealthBot();
-        healthBotState = healthBot.state;
-      } catch (e) {
-        // HealthBotProvider not available in current component tree, that's okay
-        console.log('HealthBot context not available in current component tree');
-      }
-    }
-  } catch (e) {
-    // Module not found or other error, that's okay
-    console.log('HealthBot module not available');
-  }
+  const healthBot = useSafeHealthBot();
   
   // Automatically speak healthbot messages when they arrive
   useEffect(() => {
-    if (!tts.isSoundEnabled || !healthBotState || healthBotState.messages?.length === 0) return;
+    if (!tts.isSoundEnabled || !healthBot || !healthBot.state || !healthBot.state.messages || healthBot.state.messages.length === 0) {
+      return;
+    }
     
-    const lastMessage = healthBotState.messages[healthBotState.messages.length - 1];
+    const lastMessage = healthBot.state.messages[healthBot.state.messages.length - 1];
     
     // Only speak healthbot messages, not user messages
     if (lastMessage.sender === 'healthbot' && !lastMessage.isAnalysis) {
@@ -68,7 +75,7 @@ export const AudioProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       
       tts.speakText(analysisText);
     }
-  }, [healthBotState?.messages, tts, i18n.language]);
+  }, [healthBot?.state?.messages, tts, i18n.language]);
   
   return (
     <AudioContext.Provider
