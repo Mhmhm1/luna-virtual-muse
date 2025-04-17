@@ -34,8 +34,7 @@ const Auth = () => {
     setError(null);
     
     try {
-      const result = await signIn(email, password);
-      if (result && result.error) throw new Error(result.error.message);
+      await signIn(email, password);
       navigate('/');
     } catch (err: any) {
       setError(err.message);
@@ -50,8 +49,12 @@ const Auth = () => {
     setError(null);
     
     try {
-      const result = await signUp(email, password, name);
-      if (result && result.error) throw new Error(result.error.message);
+      // Split the name into first and last name
+      const nameParts = name.split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
+      await signUp(email, password, firstName, lastName);
       navigate('/');
     } catch (err: any) {
       setError(err.message);
