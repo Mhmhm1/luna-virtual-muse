@@ -1,7 +1,6 @@
 
 import React, { createContext, useContext, ReactNode, useEffect } from 'react';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
-import { useHealthBot } from '@/context/HealthBotContext';
 import { useTranslation } from 'react-i18next';
 
 interface AudioContextType {
@@ -16,14 +15,32 @@ const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
 export const AudioProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const tts = useTextToSpeech();
-  const { state } = useHealthBot();
   const { i18n } = useTranslation();
+  
+  // We'll check if HealthBotContext is available and use it if it is
+  let healthBotState = null;
+  try {
+    // Try to import and use HealthBotContext, but don't fail if it's not available
+    const { useHealthBot } = require('@/context/HealthBotContext');
+    if (typeof useHealthBot === 'function') {
+      try {
+        const healthBot = useHealthBot();
+        healthBotState = healthBot.state;
+      } catch (e) {
+        // HealthBotProvider not available in current component tree, that's okay
+        console.log('HealthBot context not available in current component tree');
+      }
+    }
+  } catch (e) {
+    // Module not found or other error, that's okay
+    console.log('HealthBot module not available');
+  }
   
   // Automatically speak healthbot messages when they arrive
   useEffect(() => {
-    if (!tts.isSoundEnabled || state.messages.length === 0) return;
+    if (!tts.isSoundEnabled || !healthBotState || healthBotState.messages?.length === 0) return;
     
-    const lastMessage = state.messages[state.messages.length - 1];
+    const lastMessage = healthBotState.messages[healthBotState.messages.length - 1];
     
     // Only speak healthbot messages, not user messages
     if (lastMessage.sender === 'healthbot' && !lastMessage.isAnalysis) {
@@ -51,7 +68,7 @@ export const AudioProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       
       tts.speakText(analysisText);
     }
-  }, [state.messages, tts, i18n.language]);
+  }, [healthBotState?.messages, tts, i18n.language]);
   
   return (
     <AudioContext.Provider

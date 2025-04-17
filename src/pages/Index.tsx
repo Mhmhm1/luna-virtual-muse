@@ -11,6 +11,7 @@ import { RotateCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useAudio } from '@/context/AudioContext';
+import { AudioProvider } from '@/context/AudioContext';
 
 const HealthChatContainer = () => {
   const { state, resetConversation } = useHealthBot();
@@ -105,9 +106,12 @@ const HealthChatContainer = () => {
 const Index = () => {
   return (
     <HealthBotProvider>
-      <div className="min-h-screen bg-gradient-radial from-emerald-50 via-white to-white">
-        <HealthChatContainer />
-      </div>
+      {/* Move AudioProvider here inside HealthBotProvider */}
+      <AudioProvider>
+        <div className="min-h-screen bg-gradient-radial from-emerald-50 via-white to-white">
+          <HealthChatContainer />
+        </div>
+      </AudioProvider>
     </HealthBotProvider>
   );
 };
