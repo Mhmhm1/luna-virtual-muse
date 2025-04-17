@@ -12,8 +12,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useAudio } from '@/context/AudioContext';
 import { AudioProvider } from '@/context/AudioContext';
+import { useTranslation } from 'react-i18next';
 
 const HealthChatContainer = () => {
+  const { t, i18n } = useTranslation();
   const { state, resetConversation } = useHealthBot();
   const { user, loading: authLoading } = useAuth();
   const { speakText, isSoundEnabled } = useAudio();
@@ -35,12 +37,12 @@ const HealthChatContainer = () => {
   useEffect(() => {
     if (user && isSoundEnabled && !welcomePlayed.current && state.messages.length > 0) {
       welcomePlayed.current = true;
-      const welcomeMessage = "Welcome to MediAssist Pro. I'm your personal health assistant. You can tell me about your symptoms, and I'll help analyze possible conditions. You can enable or disable my voice using the sound button in the header.";
+      const welcomeMessage = t("welcome_message", "Welcome to MediAssist Pro. I'm your personal health assistant. You can tell me about your symptoms, and I'll help analyze possible conditions. You can enable or disable my voice using the sound button in the header.");
       setTimeout(() => {
         speakText(welcomeMessage);
       }, 1000);
     }
-  }, [user, isSoundEnabled, speakText, state.messages]);
+  }, [user, isSoundEnabled, speakText, state.messages, t]);
   
   if (authLoading) {
     return (
@@ -60,7 +62,7 @@ const HealthChatContainer = () => {
             className="text-sm text-muted-foreground flex items-center gap-1"
             onClick={resetConversation}
           >
-            <RotateCcw className="w-3 h-3" /> Reset Conversation
+            <RotateCcw className="w-3 h-3" /> {t('reset_conversation')}
           </Button>
         </div>
         
@@ -90,8 +92,8 @@ const HealthChatContainer = () => {
       <div className="md:w-1/2 flex flex-col">
         <div className="flex-1 bg-white bg-opacity-60 backdrop-blur-md rounded-2xl shadow-xl overflow-hidden border border-gray-100">
           <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-emerald-50 to-emerald-100">
-            <h2 className="font-semibold text-lg text-emerald-800">Health Analysis</h2>
-            <p className="text-sm text-emerald-700">Charts and recommendations based on your symptoms</p>
+            <h2 className="font-semibold text-lg text-emerald-800">{t('health_analysis')}</h2>
+            <p className="text-sm text-emerald-700">{t('health_analysis_desc')}</p>
           </div>
           
           <div className="p-4 overflow-y-auto h-full">
@@ -106,7 +108,6 @@ const HealthChatContainer = () => {
 const Index = () => {
   return (
     <HealthBotProvider>
-      {/* Move AudioProvider here inside HealthBotProvider */}
       <AudioProvider>
         <div className="min-h-screen bg-gradient-radial from-emerald-50 via-white to-white">
           <HealthChatContainer />

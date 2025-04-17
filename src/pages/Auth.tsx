@@ -34,8 +34,8 @@ const Auth = () => {
     setError(null);
     
     try {
-      const { error } = await signIn(email, password);
-      if (error) throw new Error(error.message);
+      const result = await signIn(email, password);
+      if (result && result.error) throw new Error(result.error.message);
       navigate('/');
     } catch (err: any) {
       setError(err.message);
@@ -50,8 +50,8 @@ const Auth = () => {
     setError(null);
     
     try {
-      const { error } = await signUp(email, password, name);
-      if (error) throw new Error(error.message);
+      const result = await signUp(email, password, name);
+      if (result && result.error) throw new Error(result.error.message);
       navigate('/');
     } catch (err: any) {
       setError(err.message);

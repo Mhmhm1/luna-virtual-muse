@@ -3,6 +3,8 @@ export default {
   // Common
   "app_name": "MediAssist Pro",
   "app_description": "Your personal health assistant",
+  "welcome_to": "Welcome to",
+  "welcome_message": "Welcome to MediAssist Pro. I'm your personal health assistant. You can tell me about your symptoms, and I'll help analyze possible conditions. You can enable or disable my voice using the sound button in the header.",
   
   // Auth
   "sign_in": "Sign In",
@@ -10,12 +12,20 @@ export default {
   "sign_out": "Sign Out",
   "email": "Email",
   "password": "Password",
+  "name": "Name",
   "first_name": "First Name",
   "last_name": "Last Name",
   "create_account": "Create Account",
+  "auth_subtitle": "Access your personal health assistant",
   "enter_credentials": "Enter your credentials to access your account.",
   "create_account_desc": "Create a new account to get started.",
   "back_to_home": "Back to Home",
+  "signing_in": "Signing In...",
+  "signing_up": "Signing Up...",
+  
+  // 404 Page
+  "page_not_found": "Page Not Found",
+  "page_not_found_desc": "Sorry, the page you are looking for does not exist.",
   
   // Chat
   "reset_conversation": "Reset Conversation",
@@ -62,7 +72,6 @@ export default {
   
   // System
   "loading": "Loading...",
-  "signing_in": "Signing In...",
   "creating_account": "Creating Account...",
   "no_english_voices": "No English voices available",
   

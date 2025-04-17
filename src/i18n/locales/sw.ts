@@ -1,8 +1,9 @@
-
 export default {
   // Common
   "app_name": "MediAssist Pro",
   "app_description": "Msaidizi wako wa afya",
+  "welcome_to": "Karibu kwenye",
+  "welcome_message": "Karibu kwenye MediAssist Pro. Mimi ni msaidizi wako wa afya. Unaweza kuniambia kuhusu dalili zako, na nitasaidia kuchambua hali zinazowezekana. Unaweza kuwezesha au kuzima sauti yangu kwa kutumia kitufe cha sauti kilichopo kwenye kichwa.",
   
   // Auth
   "sign_in": "Ingia",
@@ -10,12 +11,20 @@ export default {
   "sign_out": "Toka",
   "email": "Barua pepe",
   "password": "Nywila",
+  "name": "Jina",
   "first_name": "Jina la kwanza",
   "last_name": "Jina la familia",
   "create_account": "Fungua akaunti",
+  "auth_subtitle": "Fikia msaidizi wako wa afya",
   "enter_credentials": "Ingiza hati tambulishi zako kuingia kwenye akaunti yako.",
   "create_account_desc": "Fungua akaunti mpya kuanza.",
   "back_to_home": "Rudi nyumbani",
+  "signing_in": "Inaingia...",
+  "signing_up": "Inajisajili...",
+  
+  // 404 Page
+  "page_not_found": "Ukurasa Haujapatikana",
+  "page_not_found_desc": "Samahani, ukurasa unaoutafuta haupo.",
   
   // Chat
   "reset_conversation": "Anza upya mazungumzo",
@@ -62,7 +71,6 @@ export default {
   
   // System
   "loading": "Inapakia...",
-  "signing_in": "Inaingia...",
   "creating_account": "Inatengeneza akaunti...",
   "no_english_voices": "Hakuna sauti za Kiingereza zinazopatikana",
   

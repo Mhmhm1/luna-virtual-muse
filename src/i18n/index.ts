@@ -3,6 +3,7 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { useLocalStorage } from '@/hooks/use-local-storage';
+import { useEffect } from 'react';
 
 // Import translations
 import en from './locales/en';
@@ -51,12 +52,28 @@ i18n
 export const useLanguage = () => {
   const [language, setLanguage] = useLocalStorage('language', i18n.language);
   
+  // Apply the stored language when component mounts
+  useEffect(() => {
+    if (language && i18n.language !== language) {
+      i18n.changeLanguage(language);
+    }
+  }, [language]);
+  
   const changeLanguage = (lang: string) => {
     i18n.changeLanguage(lang);
     setLanguage(lang);
+    
+    // Set HTML lang attribute for accessibility
+    document.documentElement.setAttribute("lang", lang);
+    
+    // Update any text-to-speech settings if needed
+    // This depends on how your TTS is implemented
   };
   
   return { language, changeLanguage, languages };
 };
+
+// Set the initial HTML lang attribute
+document.documentElement.setAttribute("lang", i18n.language);
 
 export default i18n;
