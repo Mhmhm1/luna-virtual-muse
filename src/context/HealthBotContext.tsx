@@ -1,7 +1,8 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Message, Symptom, HealthBotState, Analysis, Disease, Doctor } from '../types/health';
+import { Message, Symptom, HealthBotState } from '../types/health';
 import { symptoms, getSymptomById } from '../data/symptoms';
-import { analyzeSymptomsForDiseases } from '../data/diseases';
+import { useOpenAI } from '@/hooks/useOpenAI';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { v4 as uuidv4 } from 'uuid';
@@ -17,9 +18,6 @@ type HealthBotContextType = {
   clearSymptoms: () => void;
   resetConversation: () => void;
   startAnalysis: () => void;
-  selectDisease: (disease: Disease) => void;
-  viewDoctorsList: (disease: Disease) => void;
-  viewPrescription: (disease: Disease) => void;
   saveConversation: () => Promise<void>;
 };
 
@@ -28,9 +26,6 @@ const initialState: HealthBotState = {
   selectedSymptoms: [],
   lastInteractionTime: null,
   loading: false,
-  selectedDisease: null,
-  viewingDoctors: false,
-  viewingPrescription: false,
   analysis: null,
 };
 
@@ -51,6 +46,7 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   });
 
   const { user } = useAuth();
+  const { generateResponse } = useOpenAI();
 
   useEffect(() => {
     localStorage.setItem('healthBotState', JSON.stringify(state));
@@ -105,7 +101,7 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
-  const sendMessage = (text: string) => {
+  const sendMessage = async (text: string) => {
     const userMessage: Message = {
       id: uuidv4(),
       sender: 'user',
@@ -119,73 +115,38 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       lastInteractionTime: Date.now(),
       loading: true
     }));
-    
-    if (!text.includes("I'm experiencing") && !text.includes("Can you analyze these symptoms")) {
-      setTimeout(() => {
-        processUserMessage(text);
-      }, 1000);
-    } else {
+
+    try {
+      const response = await generateResponse(
+        `You are a medical assistant. The user says: "${text}". If they are describing symptoms, identify them and provide a helpful response. If they are asking about their symptoms, provide an analysis. Keep responses concise and professional.`
+      );
+
+      const botMessage: Message = {
+        id: uuidv4(),
+        sender: 'healthbot',
+        text: response,
+        timestamp: Date.now()
+      };
+
       setState(prev => ({
         ...prev,
+        messages: [...prev.messages, botMessage],
+        loading: false
+      }));
+    } catch (error) {
+      const errorMessage: Message = {
+        id: uuidv4(),
+        sender: 'healthbot',
+        text: "I apologize, but I'm having trouble processing your request. Please try again.",
+        timestamp: Date.now()
+      };
+
+      setState(prev => ({
+        ...prev,
+        messages: [...prev.messages, errorMessage],
         loading: false
       }));
     }
-  };
-  
-  const processUserMessage = (text: string) => {
-    const lowerText = text.toLowerCase();
-    const foundSymptoms: Symptom[] = [];
-    
-    symptoms.forEach(symptom => {
-      if (lowerText.includes(symptom.name.toLowerCase()) || 
-          lowerText.includes(symptom.id.replace('-', ' '))) {
-        if (!state.selectedSymptoms.some(s => s.id === symptom.id)) {
-          foundSymptoms.push(symptom);
-        }
-      }
-    });
-    
-    let responseText = "";
-    
-    if (foundSymptoms.length > 0) {
-      const newSelectedSymptoms = [...state.selectedSymptoms, ...foundSymptoms];
-      
-      const symptomNames = foundSymptoms.map(s => s.name).join(', ');
-      responseText = `I've identified these symptoms: ${symptomNames}. I've added them to your list. Would you like to mention any other symptoms, or should I analyze these?`;
-      
-      setState(prev => ({
-        ...prev,
-        selectedSymptoms: newSelectedSymptoms,
-        loading: false
-      }));
-    } else if (lowerText.includes('analyze') || 
-               lowerText.includes('what') || 
-               lowerText.includes('diagnose') || 
-               lowerText.includes('assess') ||
-               lowerText.includes('tell me') ||
-               lowerText.includes('send')) {
-      if (state.selectedSymptoms.length === 0) {
-        responseText = "I don't have any symptoms to analyze yet. Please tell me what symptoms you're experiencing.";
-      } else {
-        startAnalysis();
-        return;
-      }
-    } else {
-      responseText = "I'm not sure if I understood your symptoms correctly. You can search for symptoms using the search bar below, or tell me more about how you're feeling.";
-    }
-    
-    const botMessage: Message = {
-      id: uuidv4(),
-      sender: 'healthbot',
-      text: responseText,
-      timestamp: Date.now()
-    };
-    
-    setState(prev => ({
-      ...prev,
-      messages: [...prev.messages, botMessage],
-      loading: false
-    }));
   };
   
   const selectSymptom = (symptom: Symptom) => {
@@ -229,7 +190,7 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }));
   };
   
-  const startAnalysis = () => {
+  const startAnalysis = async () => {
     if (state.selectedSymptoms.length === 0) {
       const botMessage: Message = {
         id: uuidv4(),
@@ -249,11 +210,7 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     
     setState(prev => ({
       ...prev,
-      loading: true,
-      selectedDisease: null,
-      viewingDoctors: false,
-      viewingPrescription: false,
-      analysis: null
+      loading: true
     }));
     
     const analyzingMessage: Message = {
@@ -268,196 +225,52 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       messages: [...prev.messages, analyzingMessage]
     }));
     
-    setTimeout(() => {
-      const symptomIds = state.selectedSymptoms.map(s => s.id);
-      
-      const possibleDiseases = analyzeSymptomsForDiseases(symptomIds);
-      
-      const diseasesWithPercentages = possibleDiseases.map((disease, index) => {
-        const matchingSymptoms = disease.commonSymptoms.filter(id => symptomIds.includes(id));
-        const totalSymptoms = disease.commonSymptoms.length;
-        const userSymptoms = symptomIds.length;
-        
-        const matchPercentage = (matchingSymptoms.length / totalSymptoms) * 100;
-        const coveragePercentage = (matchingSymptoms.length / userSymptoms) * 100;
-        
-        const finalPercentage = Math.round((matchPercentage * 0.7) + (coveragePercentage * 0.3));
-        
-        return {
-          ...disease,
-          matchPercentage: Math.min(95, Math.max(30, finalPercentage))
-        };
-      });
-      
-      diseasesWithPercentages.sort((a, b) => (b.matchPercentage || 0) - (a.matchPercentage || 0));
-      
-      const topMatches = diseasesWithPercentages
-        .filter(d => (d.matchPercentage || 0) > 40)
-        .slice(0, 2);
-      
-      const hasMoreMatches = diseasesWithPercentages.filter(d => (d.matchPercentage || 0) > 50).length > 2;
-      
-      const analysis: Analysis = {
-        possibleDiseases: topMatches,
-        confidence: topMatches.length > 0 ? (topMatches[0].matchPercentage || 0) / 100 : 0.3,
-        recommendation: buildRecommendation(topMatches, state.selectedSymptoms, hasMoreMatches)
-      };
-      
-      let analysisMessageText = "";
-      
-      if (topMatches.length > 2) {
-        analysisMessageText = createAnalysisMessageText(topMatches.slice(0, 2), diseasesWithPercentages.length, true);
-      } else if (topMatches.length === 0) {
-        analysisMessageText = "Based on the symptoms you've provided, I couldn't identify any specific conditions in my database. Please provide more information about your symptoms or consult a healthcare professional for a proper diagnosis.";
-      } else {
-        analysisMessageText = createAnalysisMessageText(topMatches, diseasesWithPercentages.length, hasMoreMatches);
-      }
-      
+    try {
+      const symptomsText = state.selectedSymptoms
+        .map(s => s.name)
+        .join(', ');
+
+      const response = await generateResponse(
+        `Act as a medical assistant and analyze these symptoms: ${symptomsText}. 
+         Provide a professional analysis including:
+         1. Possible conditions (2-3 most likely ones)
+         2. Brief description of each condition
+         3. General severity level (mild, moderate, or severe)
+         4. Basic recommendations
+         
+         Keep the response structured but conversational. Remember to include a medical disclaimer.`
+      );
+
       const analysisMessage: Message = {
         id: uuidv4(),
         sender: 'healthbot',
-        text: analysisMessageText,
+        text: response,
         timestamp: Date.now(),
-        isAnalysis: true,
-        analysis: analysis
+        isAnalysis: true
       };
-      
+
       setState(prev => ({
         ...prev,
         messages: [...prev.messages.filter(m => m.id !== analyzingMessage.id), analysisMessage],
-        loading: false,
-        analysis: analysis
+        loading: false
       }));
-      
+
       if (user) {
         saveConversation();
       }
-    }, 2500);
-  };
-  
-  const createAnalysisMessageText = (topMatches: Disease[], totalMatches: number, hasMoreMatches: boolean): string => {
-    if (topMatches.length === 0) {
-      return "Based on the symptoms you've provided, I couldn't identify any specific conditions in my database. Please provide more information about your symptoms or consult a healthcare professional for a proper diagnosis.";
-    }
-    
-    if (hasMoreMatches) {
-      return `Your symptoms match several possible conditions. To narrow down the possibilities further, please provide more specific details about your symptoms, such as when they started, their severity, and any additional symptoms you may be experiencing. Based on what you've shared so far, the most likely possibilities include ${topMatches.map(d => d.name).join(' and ')}.`;
-    }
-    
-    if (topMatches.length === 1) {
-      const match = topMatches[0];
-      const percentage = match.matchPercentage || 0;
-      return `Based on your symptoms, there's a ${percentage}% match with ${match.name}. ${match.description} Would you like to see more details about this condition or recommendations for specialists?`;
-    }
-    
-    return `Based on your symptoms, I've narrowed it down to two possible conditions: ${topMatches[0].name} (${topMatches[0].matchPercentage}% match) and ${topMatches[1].name} (${topMatches[1].matchPercentage}% match). Would you like to see more details about either of these conditions?`;
-  };
-  
-  const buildRecommendation = (diseases: Disease[], symptoms: Symptom[], hasMoreMatches: boolean): string => {
-    if (diseases.length === 0) {
-      return "Your symptoms don't clearly match any specific condition in my database. Please consult with a healthcare professional for a proper diagnosis. Consider providing more details about your symptoms, including their duration, severity, and any other symptoms you might be experiencing.";
-    }
-    
-    if (hasMoreMatches) {
-      return "Your symptoms match several possible conditions. To narrow it down further, please provide more specific information about when your symptoms started, their severity, and any additional symptoms you may have. The key to an accurate diagnosis is often in the details, so try to be as specific as possible, or consult a healthcare professional for a thorough evaluation.";
-    }
-    
-    if (diseases.length === 1) {
-      const disease = diseases[0];
-      return `Based on your symptoms, ${disease.name} seems likely. ${disease.description} It's recommended to consult with a ${disease.specialist.title} for proper diagnosis and treatment. Please note that this is not a definitive diagnosis, and a healthcare professional will need to evaluate you in person.`;
-    }
-    
-    return `Based on your symptoms, I've narrowed it down to ${diseases[0].name} and ${diseases[1].name}. To determine which is more likely, a healthcare professional would need to perform additional tests and examinations. It would be helpful to monitor your symptoms and note any changes or new symptoms that develop. Remember, this analysis is not a substitute for professional medical advice.`;
-  };
-  
-  const selectDisease = (disease: Disease) => {
-    setState(prev => ({
-      ...prev,
-      selectedDisease: disease,
-      viewingDoctors: false,
-      viewingPrescription: false
-    }));
-    
-    const detailsMessage: Message = {
-      id: uuidv4(),
-      sender: 'healthbot',
-      text: `I've found more information about ${disease.name}. Here are some key points:
-      
-• ${disease.description}
-• Severity: ${disease.severity.charAt(0).toUpperCase() + disease.severity.slice(1)}
-• Recommended specialist: ${disease.specialist.title}
-      
-Would you like to see the potential treatment options or recommended specialists?`,
-      timestamp: Date.now()
-    };
-    
-    setState(prev => ({
-      ...prev,
-      messages: [...prev.messages, detailsMessage]
-    }));
-  };
-  
-  const viewPrescription = (disease: Disease) => {
-    setState(prev => ({
-      ...prev,
-      viewingPrescription: true,
-      viewingDoctors: false
-    }));
-    
-    const medicationsList = disease.medications.map(med => 
-      `• ${med.name} (${med.dosage}): ${med.frequency} for ${med.duration}`
-    ).join('\n');
-    
-    const prescriptionMessage: Message = {
-      id: uuidv4(),
-      sender: 'healthbot',
-      text: `Here are common medications used to treat ${disease.name}:
-      
-${medicationsList}
-      
-Please note that medication should only be taken as prescribed by a healthcare professional. Would you like me to recommend specialists who can provide proper treatment?`,
-      timestamp: Date.now()
-    };
-    
-    setState(prev => ({
-      ...prev,
-      messages: [...prev.messages, prescriptionMessage]
-    }));
-  };
-  
-  const viewDoctorsList = (disease: Disease) => {
-    setState(prev => ({
-      ...prev,
-      viewingDoctors: true
-    }));
-    
-    const doctors = disease.specialist.recommendedDoctors;
-    const availableDoctors = doctors.filter(doc => doc.available);
-    
-    let doctorsText = `Here are some ${disease.specialist.title} specialists who can help with ${disease.name}:\n\n`;
-    
-    if (availableDoctors.length > 0) {
-      doctorsText += availableDoctors.slice(0, 2).map(doc => 
-        `• ${doc.name} (${doc.specialty}) - ${doc.hospital}\n  Experience: ${doc.experience} | Rating: ${"★".repeat(Math.round(doc.rating))}\n  Contact: ${doc.phone}`
-      ).join('\n\n');
-    } else {
-      doctorsText += `Currently, there are no available specialists. Please check back later or contact your local hospital for referrals.`;
-    }
-    
-    const doctorsMessage: Message = {
-      id: uuidv4(),
-      sender: 'healthbot',
-      text: doctorsText,
-      timestamp: Date.now()
-    };
-    
-    setState(prev => ({
-      ...prev,
-      messages: [...prev.messages, doctorsMessage]
-    }));
-    
-    if (user) {
-      saveConversation();
+    } catch (error) {
+      const errorMessage: Message = {
+        id: uuidv4(),
+        sender: 'healthbot',
+        text: "I apologize, but I encountered an error while analyzing your symptoms. Please try again.",
+        timestamp: Date.now()
+      };
+
+      setState(prev => ({
+        ...prev,
+        messages: [...prev.messages.filter(m => m.id !== analyzingMessage.id), errorMessage],
+        loading: false
+      }));
     }
   };
   
@@ -480,9 +293,6 @@ Please note that medication should only be taken as prescribed by a healthcare p
       selectedSymptoms: [],
       lastInteractionTime: Date.now(),
       loading: false,
-      selectedDisease: null,
-      viewingDoctors: false,
-      viewingPrescription: false,
       analysis: null
     });
   };
@@ -498,9 +308,6 @@ Please note that medication should only be taken as prescribed by a healthcare p
         clearSymptoms, 
         resetConversation,
         startAnalysis,
-        selectDisease,
-        viewDoctorsList,
-        viewPrescription,
         saveConversation
       }}
     >

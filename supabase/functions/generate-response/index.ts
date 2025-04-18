@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, model = 'gpt-4o-mini' } = await req.json();
+    const { prompt, model = 'gpt-4o' } = await req.json();
 
     if (!prompt) {
       throw new Error('Prompt is required');
@@ -27,9 +27,14 @@ serve(async (req) => {
     const response = await openai.chat.completions.create({
       model: model,
       messages: [
-        { role: 'system', content: 'You are a helpful assistant.' },
+        { 
+          role: 'system', 
+          content: 'You are a professional medical assistant AI. Provide accurate, helpful medical information while always including appropriate medical disclaimers. Be clear, concise, and empathetic. Never provide definitive diagnoses, but rather suggest possibilities and recommend professional medical consultation when appropriate.' 
+        },
         { role: 'user', content: prompt }
       ],
+      temperature: 0.7,
+      max_tokens: 1000,
     });
 
     const generatedText = response.choices[0].message.content;
