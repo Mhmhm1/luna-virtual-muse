@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Message, Symptom, HealthBotState } from '../types/health';
+import { Message, Symptom, HealthBotState, Disease } from '../types/health';
 import { symptoms, getSymptomById } from '../data/symptoms';
 import { useOpenAI } from '@/hooks/useOpenAI';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,6 +19,9 @@ type HealthBotContextType = {
   resetConversation: () => void;
   startAnalysis: () => void;
   saveConversation: () => Promise<void>;
+  selectDisease: (disease: Disease) => void;
+  viewPrescription: (disease: Disease) => void;
+  viewDoctorsList: (disease: Disease) => void;
 };
 
 const initialState: HealthBotState = {
@@ -27,6 +30,9 @@ const initialState: HealthBotState = {
   lastInteractionTime: null,
   loading: false,
   analysis: null,
+  selectedDisease: null,
+  viewingDoctors: false,
+  viewingPrescription: false,
 };
 
 const HealthBotContext = createContext<HealthBotContextType | undefined>(undefined);
@@ -274,6 +280,68 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
   
+  const selectDisease = (disease: Disease) => {
+    setState(prev => ({
+      ...prev,
+      selectedDisease: disease,
+      viewingPrescription: false,
+      viewingDoctors: false
+    }));
+    
+    const botMessage: Message = {
+      id: uuidv4(),
+      sender: 'healthbot',
+      text: `Here's some information about ${disease.name}. Would you like to see the recommended treatment options?`,
+      timestamp: Date.now()
+    };
+    
+    setState(prev => ({
+      ...prev,
+      messages: [...prev.messages, botMessage]
+    }));
+  };
+  
+  const viewPrescription = (disease: Disease) => {
+    setState(prev => ({
+      ...prev,
+      selectedDisease: disease,
+      viewingPrescription: true,
+      viewingDoctors: false
+    }));
+    
+    const botMessage: Message = {
+      id: uuidv4(),
+      sender: 'healthbot',
+      text: `Here are the medication details for treating ${disease.name}. Would you like to see specialists who can help with this condition?`,
+      timestamp: Date.now()
+    };
+    
+    setState(prev => ({
+      ...prev,
+      messages: [...prev.messages, botMessage]
+    }));
+  };
+  
+  const viewDoctorsList = (disease: Disease) => {
+    setState(prev => ({
+      ...prev,
+      selectedDisease: disease,
+      viewingDoctors: true
+    }));
+    
+    const botMessage: Message = {
+      id: uuidv4(),
+      sender: 'healthbot',
+      text: `Here are specialists who can help with ${disease.name}. I recommend consulting with a healthcare professional for proper diagnosis and treatment.`,
+      timestamp: Date.now()
+    };
+    
+    setState(prev => ({
+      ...prev,
+      messages: [...prev.messages, botMessage]
+    }));
+  };
+  
   const resetConversation = () => {
     if (user && state.messages.length > 1) {
       saveConversation();
@@ -293,7 +361,10 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       selectedSymptoms: [],
       lastInteractionTime: Date.now(),
       loading: false,
-      analysis: null
+      analysis: null,
+      selectedDisease: null,
+      viewingDoctors: false,
+      viewingPrescription: false
     });
   };
   
@@ -308,7 +379,10 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         clearSymptoms, 
         resetConversation,
         startAnalysis,
-        saveConversation
+        saveConversation,
+        selectDisease,
+        viewPrescription,
+        viewDoctorsList
       }}
     >
       {children}
