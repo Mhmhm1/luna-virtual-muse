@@ -17,14 +17,18 @@ export const useOpenAI = () => {
     setError(null);
 
     try {
+      console.log(`Sending request to OpenAI with mode: ${mode}`);
+      
       const { data, error } = await supabase.functions.invoke('generate-response', {
         body: JSON.stringify({ prompt, model, mode })
       });
 
       if (error) throw error;
-
+      
+      console.log(`Received response from OpenAI for mode ${mode}`);
       return data.generatedText;
     } catch (err) {
+      console.error("OpenAI error:", err);
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
       throw err;
     } finally {

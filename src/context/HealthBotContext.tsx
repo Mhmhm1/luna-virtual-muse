@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Message, Symptom, HealthBotState, Disease, Analysis, Medication, Specialist, Doctor } from '../types/health';
 import { symptoms, getSymptomById } from '../data/symptoms';
@@ -123,7 +122,6 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }));
 
     try {
-      // Use the 'chat' mode for general conversation
       const response = await generateResponse(
         `The user says: "${text}". If they are describing symptoms, identify them and provide a helpful response. If they are asking about their symptoms, provide educational information.`,
         'gpt-4o',
@@ -239,19 +237,21 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         .map(s => `${s.name} (${s.category}): ${s.description}`)
         .join('\n- ');
 
-      // Use the 'analyze' mode for symptom analysis
       const response = await generateResponse(
-        `Analyze these symptoms thoroughly:\n- ${symptomsText}\n\nProvide a detailed analysis including possible conditions with match percentages, descriptions, and recommendations.`,
+        `Analyze these symptoms thoroughly and provide a structured response:\n- ${symptomsText}\n\nRemember to follow the exact format with clearly labeled sections for each condition as specified in your instructions.`,
         'gpt-4o',
         'analyze'
       );
 
-      // Create a simplified analysis object from the response
+      console.log("Analysis response:", response);
+
       const parsedAnalysis: Analysis = {
         possibleDiseases: extractDiseasesFromResponse(response),
         confidence: 0.85, // Default confidence
         recommendation: "Please consult with a healthcare professional for an accurate diagnosis."
       };
+
+      console.log("Parsed analysis:", parsedAnalysis);
 
       const analysisMessage: Message = {
         id: uuidv4(),
@@ -288,30 +288,26 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
   
-  // Helper function to extract diseases from the AI response
   const extractDiseasesFromResponse = (response: string): Disease[] => {
-    // This is a simple parser, in a real system you might want to 
-    // have the AI return structured JSON instead
+    console.log("Extracting diseases from:", response);
     const diseases: Disease[] = [];
     const lines = response.split('\n');
     
     let currentDisease: Partial<Disease> | null = null;
     let matchPercentage: number | undefined;
     
-    for (const line of lines) {
-      // Look for disease names with percentages like "Condition: Migraine (85% match)"
-      const diseaseMatch = line.match(/([^:]+?)(?:\s*\((\d+)%\s*match\))?:?/i);
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
       
-      if (diseaseMatch && (line.includes('Condition:') || line.toLowerCase().includes('possible condition'))) {
-        // Save previous disease if it exists
+      if (line.toLowerCase().includes('condition:')) {
         if (currentDisease?.name && currentDisease?.description) {
           diseases.push({
             id: uuidv4(),
             name: currentDisease.name,
             description: currentDisease.description,
             commonSymptoms: currentDisease.commonSymptoms || [],
-            medications: [],
-            specialist: {
+            medications: currentDisease.medications || [],
+            specialist: currentDisease.specialist || {
               title: 'Specialist',
               field: 'Medicine',
               description: 'Consult with a healthcare professional',
@@ -322,61 +318,46 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           });
         }
         
-        // Start new disease
-        currentDisease = {
-          name: diseaseMatch[1].trim()
-        };
-        
-        matchPercentage = diseaseMatch[2] ? parseInt(diseaseMatch[2]) : undefined;
-      }
-      
-      // Look for description
-      if (currentDisease && !currentDisease.description && 
-         (line.toLowerCase().includes('description:') || line.toLowerCase().includes('overview:'))) {
-        currentDisease.description = line.split(':')[1]?.trim() || '';
-        
-        // Sometimes the description spans multiple lines
-        let i = lines.indexOf(line) + 1;
-        while (i < lines.length && 
-              !lines[i].includes(':') && 
-              !lines[i].includes('Symptoms') && 
-              lines[i].trim() !== '') {
-          currentDisease.description += ' ' + lines[i].trim();
-          i++;
+        const nameMatch = line.match(/Condition:\s*([^(]+?)(?:\s*\((\d+)%\s*match\))?/i);
+        if (nameMatch) {
+          currentDisease = {
+            name: nameMatch[1].trim(),
+            medications: []
+          };
+          
+          matchPercentage = nameMatch[2] ? parseInt(nameMatch[2]) : 75;
         }
       }
       
-      // Look for symptoms
-      if (currentDisease && line.toLowerCase().includes('symptoms:') || 
-         line.toLowerCase().includes('common symptoms:')) {
-        const symptomsText = line.split(':')[1]?.trim() || '';
+      if (currentDisease && line.toLowerCase().includes('description:')) {
+        currentDisease.description = line.substring(line.indexOf(':') + 1).trim();
         
-        // Extract symptoms from list or comma-separated string
-        let symptomsList: string[];
-        if (symptomsText) {
-          // Already on this line
-          symptomsList = symptomsText.split(/,|\n/).map(s => s.trim()).filter(Boolean);
-        } else {
-          // Symptoms might be listed on subsequent lines
-          symptomsList = [];
-          let i = lines.indexOf(line) + 1;
-          while (i < lines.length && 
-                !lines[i].includes(':') && 
-                !lines[i].includes('Severity') && 
-                lines[i].trim() !== '') {
-            // Check if it's a list item
-            const symptom = lines[i].replace(/^[-•*]\s*/, '').trim();
-            if (symptom) symptomsList.push(symptom);
-            i++;
-          }
+        let nextLine = i + 1;
+        while (nextLine < lines.length && 
+              !lines[nextLine].includes(':') && 
+              lines[nextLine].trim() !== '') {
+          currentDisease.description += ' ' + lines[nextLine].trim();
+          nextLine++;
+          i = nextLine - 1;
         }
-        
-        currentDisease.commonSymptoms = symptomsList;
       }
       
-      // Look for severity
+      if (currentDisease && (line.toLowerCase().includes('common symptoms:') || line.toLowerCase().includes('symptoms:'))) {
+        currentDisease.commonSymptoms = [];
+        
+        let nextLine = i + 1;
+        while (nextLine < lines.length && 
+               !lines[nextLine].includes(':') && 
+               lines[nextLine].trim() !== '') {
+          const symptom = lines[nextLine].replace(/^[-•*]\s*/, '').trim();
+          if (symptom) currentDisease.commonSymptoms.push(symptom);
+          nextLine++;
+          i = nextLine - 1;
+        }
+      }
+      
       if (currentDisease && line.toLowerCase().includes('severity:')) {
-        const severityText = line.split(':')[1]?.trim().toLowerCase() || '';
+        const severityText = line.substring(line.indexOf(':') + 1).trim().toLowerCase();
         
         if (severityText.includes('mild')) {
           currentDisease.severity = 'mild';
@@ -388,15 +369,14 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
     }
     
-    // Don't forget to add the last disease
     if (currentDisease?.name && currentDisease?.description) {
       diseases.push({
         id: uuidv4(),
         name: currentDisease.name,
         description: currentDisease.description,
         commonSymptoms: currentDisease.commonSymptoms || [],
-        medications: [],
-        specialist: {
+        medications: currentDisease.medications || [],
+        specialist: currentDisease.specialist || {
           title: 'Specialist',
           field: 'Medicine',
           description: 'Consult with a healthcare professional',
@@ -407,6 +387,7 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       });
     }
     
+    console.log("Extracted diseases:", diseases);
     return diseases;
   };
   
@@ -420,7 +401,6 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }));
     
     try {
-      // Get more detailed information about the disease
       const detailedPrompt = `Provide detailed information about ${disease.name}, including a concise description, common symptoms, severity level, and the appropriate specialist type who would typically treat this condition.`;
       
       const response = await generateResponse(detailedPrompt, 'gpt-4o', 'analyze');
@@ -432,7 +412,6 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         timestamp: Date.now()
       };
       
-      // Update the disease object with more detailed information
       const updatedDisease = {
         ...disease,
         ...extractDiseaseDetails(response, disease)
@@ -450,7 +429,6 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         loading: false
       }));
       
-      // Still show basic disease info even if detailed fetch fails
       const fallbackMessage: Message = {
         id: uuidv4(),
         sender: 'healthbot',
@@ -465,13 +443,10 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
   
-  // Helper function to extract more disease details
   const extractDiseaseDetails = (response: string, disease: Disease): Partial<Disease> => {
-    // Extract any additional information from response
     const lines = response.split('\n');
     const updatedDetails: Partial<Disease> = {};
     
-    // Try to extract a better description
     for (const line of lines) {
       if (line.toLowerCase().includes('description:') || line.toLowerCase().includes('overview:')) {
         const description = line.split(':')[1]?.trim();
@@ -481,7 +456,6 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
     }
     
-    // Add more symptoms if found
     const symptomsLine = lines.find(line => 
       line.toLowerCase().includes('symptoms:') || line.toLowerCase().includes('common symptoms:'));
     
@@ -493,7 +467,6 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       while (i < lines.length && 
             !lines[i].includes(':') && 
             lines[i].trim() !== '') {
-        // Check if it's a list item
         const symptom = lines[i].replace(/^[-•*]\s*/, '').trim();
         if (symptom) symptomsList.push(symptom);
         i++;
@@ -517,15 +490,14 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }));
     
     try {
-      // Get prescription information using the 'prescription' mode
-      const prescriptionPrompt = `Generate medication information for treating ${disease.name}. Include dosage, frequency, duration, and side effects for each medication.`;
+      const prescriptionPrompt = `Generate medication information for treating ${disease.name}. 
+Include 2-3 medications with detailed information about dosage, frequency, duration, and side effects.
+Remember to follow the exact format specified in your instructions with clearly labeled sections.`;
       
       const response = await generateResponse(prescriptionPrompt, 'gpt-4o', 'prescription');
       
-      // Parse the medications from the response
       const medications = extractMedicationsFromResponse(response);
       
-      // Create updated disease object with medications
       const updatedDisease = {
         ...disease,
         medications
@@ -545,16 +517,16 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         loading: false
       }));
     } catch (error) {
+      console.error("Error getting prescription:", error);
       setState(prev => ({
         ...prev,
         loading: false
       }));
       
-      // Fallback in case of error
       const fallbackMessage: Message = {
         id: uuidv4(),
         sender: 'healthbot',
-        text: `Here are the medication details for treating ${disease.name}. Would you like to see specialists who can help with this condition?`,
+        text: `I couldn't retrieve detailed medication information for ${disease.name} at this time. Would you like to see specialists who can help with this condition instead?`,
         timestamp: Date.now()
       };
       
@@ -565,85 +537,61 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
   
-  // Helper function to extract medications from the AI response
   const extractMedicationsFromResponse = (response: string): Medication[] => {
+    console.log("Extracting medications from:", response);
     const medications: Medication[] = [];
     const lines = response.split('\n');
     
     let currentMedication: Partial<Medication> | null = null;
     
-    for (const line of lines) {
-      // Look for medication names usually at the start of a section
-      const medNameMatch = line.match(/^[0-9.]?\s*([\w\s-]+?)(?:\(|\:| -)/);
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
       
-      if (medNameMatch && !line.toLowerCase().includes('disclaimer') && !line.toLowerCase().includes('note:')) {
-        // Save previous medication if it exists
-        if (currentMedication?.name && currentMedication?.dosage) {
+      if (line.toLowerCase().includes('medication') || line.match(/^- name:/i)) {
+        if (currentMedication?.name) {
           medications.push({
             name: currentMedication.name,
-            dosage: currentMedication.dosage,
+            dosage: currentMedication.dosage || 'As prescribed',
             frequency: currentMedication.frequency || 'As directed',
             duration: currentMedication.duration || 'As prescribed',
             sideEffects: currentMedication.sideEffects || ['Consult a doctor for side effects']
           });
         }
         
-        // Start new medication
-        currentMedication = {
-          name: medNameMatch[1].trim()
-        };
+        currentMedication = {};
       }
       
-      // Look for dosage
-      if (currentMedication && 
-         (line.toLowerCase().includes('dosage:') || line.toLowerCase().includes('dosing:') || 
-          line.toLowerCase().includes('dose:'))) {
-        currentMedication.dosage = line.split(':')[1]?.trim() || 'As prescribed';
+      if (currentMedication && line.toLowerCase().includes('- name:')) {
+        currentMedication.name = line.substring(line.indexOf(':') + 1).trim();
       }
       
-      // Look for frequency
-      if (currentMedication && line.toLowerCase().includes('frequency:')) {
-        currentMedication.frequency = line.split(':')[1]?.trim() || 'As directed';
-      } else if (currentMedication && !currentMedication.frequency && line.toLowerCase().includes('take')) {
-        currentMedication.frequency = line.trim();
+      if (currentMedication && line.toLowerCase().includes('- dosage:')) {
+        currentMedication.dosage = line.substring(line.indexOf(':') + 1).trim();
       }
       
-      // Look for duration
-      if (currentMedication && line.toLowerCase().includes('duration:')) {
-        currentMedication.duration = line.split(':')[1]?.trim() || 'As prescribed';
+      if (currentMedication && line.toLowerCase().includes('- frequency:')) {
+        currentMedication.frequency = line.substring(line.indexOf(':') + 1).trim();
       }
       
-      // Look for side effects
-      if (currentMedication && 
-         (line.toLowerCase().includes('side effects:') || line.toLowerCase().includes('side-effects:'))) {
-        const sideEffectsText = line.split(':')[1]?.trim() || '';
+      if (currentMedication && line.toLowerCase().includes('- duration:')) {
+        currentMedication.duration = line.substring(line.indexOf(':') + 1).trim();
+      }
+      
+      if (currentMedication && line.toLowerCase().includes('- side effects:')) {
+        currentMedication.sideEffects = [];
         
-        // Extract side effects
-        if (sideEffectsText) {
-          // Already on this line
-          currentMedication.sideEffects = sideEffectsText.split(/,|;/).map(s => s.trim()).filter(Boolean);
-        } else {
-          // Side effects might be listed on subsequent lines
-          const sideEffects: string[] = [];
-          let i = lines.indexOf(line) + 1;
-          while (i < lines.length && 
-                !lines[i].includes(':') && 
-                !lines[i].toLowerCase().includes('precaution') && 
-                lines[i].trim() !== '') {
-            // Check if it's a list item
-            const effect = lines[i].replace(/^[-•*]\s*/, '').trim();
-            if (effect) sideEffects.push(effect);
-            i++;
-          }
-          
-          if (sideEffects.length > 0) {
-            currentMedication.sideEffects = sideEffects;
-          }
+        let nextLine = i + 1;
+        while (nextLine < lines.length && 
+               !lines[nextLine].includes('- ') && 
+               lines[nextLine].trim() !== '') {
+          const effect = lines[nextLine].replace(/^[*•]\s*/, '').trim();
+          if (effect) currentMedication.sideEffects.push(effect);
+          nextLine++;
+          i = nextLine - 1;
         }
       }
     }
     
-    // Don't forget to add the last medication
     if (currentMedication?.name) {
       medications.push({
         name: currentMedication.name,
@@ -662,25 +610,24 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       ...prev,
       selectedDisease: disease,
       viewingDoctors: true,
+      viewingPrescription: false,
       loading: true
     }));
     
     try {
-      // Get doctors information using the 'doctor' mode
-      const doctorsPrompt = `Generate information for specialists who treat ${disease.name}. Include name, specialty, hospital, experience, and contact information.`;
+      const doctorsPrompt = `Generate detailed information for 3-4 specialists who treat ${disease.name}. 
+Follow the exact structured format specified in your instructions with clearly labeled fields for each specialist.`;
       
       const response = await generateResponse(doctorsPrompt, 'gpt-4o', 'doctor');
       
-      // Parse the doctors from the response
       const doctors = extractDoctorsFromResponse(response);
       
-      // Create updated disease object with specialist info
       const updatedDisease = {
         ...disease,
         specialist: {
-          title: 'Specialists',
+          title: `${disease.name} Specialists`,
           field: disease.name,
-          description: `These specialists are experienced in treating ${disease.name}`,
+          description: `These medical professionals specialize in treating ${disease.name} and related conditions`,
           recommendedDoctors: doctors
         }
       };
@@ -699,16 +646,16 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         loading: false
       }));
     } catch (error) {
+      console.error("Error getting doctors:", error);
       setState(prev => ({
         ...prev,
         loading: false
       }));
       
-      // Fallback message in case of error
       const fallbackMessage: Message = {
         id: uuidv4(),
         sender: 'healthbot',
-        text: `Here are specialists who can help with ${disease.name}. I recommend consulting with a healthcare professional for proper diagnosis and treatment.`,
+        text: `I couldn't retrieve specialist information for ${disease.name} at this time. Please try again later or consult your healthcare provider for referrals.`,
         timestamp: Date.now()
       };
       
@@ -719,77 +666,79 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
   
-  // Helper function to extract doctors from the AI response
   const extractDoctorsFromResponse = (response: string): Doctor[] => {
+    console.log("Extracting doctors from:", response);
     const doctors: Doctor[] = [];
     const lines = response.split('\n');
     
     let currentDoctor: Partial<Doctor> | null = null;
     
-    for (const line of lines) {
-      // Look for doctor names (usually at the start of sections)
-      const doctorNameMatch = line.match(/^[0-9.]?\s*(Dr\.\s*[\w\s.-]+)(?:\(|\:| -)/);
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
       
-      if (doctorNameMatch) {
-        // Save previous doctor if it exists
-        if (currentDoctor?.name && currentDoctor?.specialty) {
+      if (line.toLowerCase().includes('specialist') || line.match(/^- name:/i)) {
+        if (currentDoctor?.name) {
           doctors.push({
             id: uuidv4(),
             name: currentDoctor.name,
             photoUrl: currentDoctor.photoUrl || '/assets/doctor-placeholder.png',
-            specialty: currentDoctor.specialty,
+            specialty: currentDoctor.specialty || 'General Medicine',
             hospital: currentDoctor.hospital || 'Medical Center',
             experience: currentDoctor.experience || '15+ years',
             licenseNumber: currentDoctor.licenseNumber || `MD${Math.floor(Math.random() * 100000)}`,
             phone: currentDoctor.phone || '+1-800-DOCTORS',
             bio: currentDoctor.bio || 'Experienced medical professional',
             rating: currentDoctor.rating || 4.5,
-            available: true
+            available: currentDoctor.available !== false
           });
         }
         
-        // Start new doctor
-        currentDoctor = {
-          name: doctorNameMatch[1].trim()
-        };
+        currentDoctor = {};
       }
       
-      // Extract specialty
-      if (currentDoctor && (line.toLowerCase().includes('specialty:') || line.toLowerCase().includes('specialization:'))) {
-        currentDoctor.specialty = line.split(':')[1]?.trim() || 'General Medicine';
+      if (currentDoctor && line.toLowerCase().includes('- name:')) {
+        currentDoctor.name = line.substring(line.indexOf(':') + 1).trim();
       }
       
-      // Extract hospital/clinic
-      if (currentDoctor && 
-         (line.toLowerCase().includes('hospital:') || line.toLowerCase().includes('clinic:') || 
-          line.toLowerCase().includes('affiliation:'))) {
-        currentDoctor.hospital = line.split(':')[1]?.trim() || 'Medical Center';
+      if (currentDoctor && line.toLowerCase().includes('- specialty:')) {
+        currentDoctor.specialty = line.substring(line.indexOf(':') + 1).trim();
       }
       
-      // Extract experience
-      if (currentDoctor && line.toLowerCase().includes('experience:')) {
-        currentDoctor.experience = line.split(':')[1]?.trim() || '15+ years';
+      if (currentDoctor && line.toLowerCase().includes('- hospital:')) {
+        currentDoctor.hospital = line.substring(line.indexOf(':') + 1).trim();
       }
       
-      // Extract bio/background
-      if (currentDoctor && 
-         (line.toLowerCase().includes('background:') || line.toLowerCase().includes('bio:') || 
-          line.toLowerCase().includes('about:'))) {
-        currentDoctor.bio = line.split(':')[1]?.trim() || '';
-        
-        // Sometimes the bio spans multiple lines
-        let i = lines.indexOf(line) + 1;
-        while (i < lines.length && 
-              !lines[i].includes(':') && 
-              !lines[i].includes('Dr.') && 
-              lines[i].trim() !== '') {
-          currentDoctor.bio += ' ' + lines[i].trim();
-          i++;
-        }
+      if (currentDoctor && line.toLowerCase().includes('- experience:')) {
+        currentDoctor.experience = line.substring(line.indexOf(':') + 1).trim();
+      }
+      
+      if (currentDoctor && line.toLowerCase().includes('- bio:')) {
+        currentDoctor.bio = line.substring(line.indexOf(':') + 1).trim();
+      }
+      
+      if (currentDoctor && line.toLowerCase().includes('- rating:')) {
+        const ratingStr = line.substring(line.indexOf(':') + 1).trim();
+        currentDoctor.rating = parseFloat(ratingStr) || 4.5;
+      }
+      
+      if (currentDoctor && line.toLowerCase().includes('- available:')) {
+        const availableStr = line.substring(line.indexOf(':') + 1).trim().toLowerCase();
+        currentDoctor.available = availableStr === 'yes' || availableStr === 'true';
+      }
+      
+      if (currentDoctor && line.toLowerCase().includes('- phone:')) {
+        currentDoctor.phone = line.substring(line.indexOf(':') + 1).trim();
+      }
+      
+      if (currentDoctor && line.toLowerCase().includes('- license:')) {
+        currentDoctor.licenseNumber = line.substring(line.indexOf(':') + 1).trim();
+      }
+      
+      if (currentDoctor && line.toLowerCase().includes('- photo:')) {
+        currentDoctor.photoUrl = line.substring(line.indexOf(':') + 1).trim() || '/assets/doctor-placeholder.png';
       }
     }
     
-    // Don't forget to add the last doctor
     if (currentDoctor?.name) {
       doctors.push({
         id: uuidv4(),
@@ -802,7 +751,7 @@ export const HealthBotProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         phone: currentDoctor.phone || '+1-800-DOCTORS',
         bio: currentDoctor.bio || 'Experienced medical professional',
         rating: currentDoctor.rating || 4.5,
-        available: true
+        available: currentDoctor.available !== false
       });
     }
     
