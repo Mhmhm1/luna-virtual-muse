@@ -107,7 +107,8 @@ export const useOpenAI = () => {
           toast({
             title: "AI Service Temporarily Unavailable",
             description: "Using fallback responses. Some features may be limited.",
-            variant: "warning",
+            // Change from "warning" to "destructive" to match allowed types
+            variant: "destructive",
           });
           return fallbackResponses[mode];
         }
@@ -131,7 +132,8 @@ export const useOpenAI = () => {
         toast({
           title: "AI Service Temporarily Unavailable",
           description: "Using fallback responses. Some features may be limited.",
-          variant: "warning",
+          // Change from "warning" to "destructive" to match allowed types
+          variant: "destructive",
         });
         return fallbackResponses[mode];
       }
