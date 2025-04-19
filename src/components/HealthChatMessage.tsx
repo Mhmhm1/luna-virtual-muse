@@ -49,6 +49,10 @@ const HealthChatMessage: React.FC<HealthChatMessageProps> = ({ message }) => {
       });
     }
     
+    if (state.selectedDisease && state.viewingDoctors && message.text.includes('specialists who can help')) {
+      speechText += ` I recommend consulting with a healthcare professional for proper diagnosis and treatment.`;
+    }
+    
     return speechText;
   };
   
@@ -64,7 +68,7 @@ const HealthChatMessage: React.FC<HealthChatMessageProps> = ({ message }) => {
       
       return () => clearTimeout(timer);
     }
-  }, [isHealthBot, message.text, message.isAnalysis, isSoundEnabled, state.selectedDisease, state.viewingPrescription]);
+  }, [isHealthBot, message.text, message.isAnalysis, isSoundEnabled, state.selectedDisease, state.viewingPrescription, state.viewingDoctors]);
   
   return (
     <div className={`mb-4 ${isHealthBot ? '' : 'ml-auto max-w-[80%]'}`}>
