@@ -1,31 +1,35 @@
 
-import Index from './pages/Index';
-import Auth from './pages/Auth';
-import NotFound from './pages/NotFound';
-import { Routes, Route, BrowserRouter } from 'react-router-dom';
-import { Toaster } from './components/ui/toaster';
-import { AuthProvider } from './context/AuthContext';
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Index from "./pages/Index";
+import NotFound from "./pages/NotFound";
+import Auth from "./pages/Auth";
+import { AuthProvider } from "./context/AuthContext";
+import '@/i18n'; // Import i18n initialization
 
-function App() {
-  return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-        <Toaster />
-      </AuthProvider>
-    </BrowserRouter>
-  );
-}
+const queryClient = new QueryClient();
 
-// Separate component for routes to be used inside the AuthProvider
-function AppRoutes() {
+const App = () => {
   return (
-    <Routes>
-      <Route path="/" element={<Index />} />
-      <Route path="/auth" element={<Auth />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </TooltipProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
-}
+};
 
 export default App;

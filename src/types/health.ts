@@ -81,8 +81,8 @@ export interface HealthBotState {
   selectedSymptoms: Symptom[];
   lastInteractionTime: number | null;
   loading: boolean;
-  analysis: Analysis | null;
-  selectedDisease: Disease | null;
+  selectedDisease?: Disease | null;
   viewingDoctors: boolean;
   viewingPrescription: boolean;
+  analysis: Analysis | null;
 }
