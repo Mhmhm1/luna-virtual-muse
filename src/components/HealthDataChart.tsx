@@ -1,14 +1,41 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useHealthBot } from '@/context/HealthBotContext';
 import { ChartContainer } from '@/components/ui/chart';
 import { PieChart, Pie, Cell, Legend, Tooltip } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner'; // Assuming you have a spinner component
 
 const HealthDataChart: React.FC = () => {
   const { state, viewDoctorsList, selectDisease } = useHealthBot();
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+  const [aiInsight, setAiInsight] = useState<string | null>(null);
+  const [isLoadingInsight, setIsLoadingInsight] = useState(false);
+
+  const generateAIInsight = async () => {
+    setIsLoadingInsight(true);
+    try {
+      // Call Supabase edge function for AI insight generation
+      const response = await fetch('/api/generate-health-insight', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          symptoms: state.selectedSymptoms.map(symptom => symptom.name),
+          categories: Object.keys(categoryCount)
+        })
+      });
+
+      const data = await response.json();
+      setAiInsight(data.insight);
+    } catch (error) {
+      console.error('Failed to generate AI insight:', error);
+      setAiInsight('Unable to generate AI insight at this time.');
+    } finally {
+      setIsLoadingInsight(false);
+    }
+  };
   
   // Welcome state when no symptoms are selected yet
   if (state.selectedSymptoms.length === 0) {
@@ -84,6 +111,32 @@ const HealthDataChart: React.FC = () => {
             </ChartContainer>
           </CardContent>
         </Card>
+        
+        {aiInsight && (
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle className="text-emerald-800">AI Health Insight</CardTitle>
+              <CardDescription>Personalized analysis of your symptoms</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-600">{aiInsight}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {state.selectedSymptoms.length > 0 && (
+          <Button 
+            onClick={generateAIInsight} 
+            disabled={isLoadingInsight}
+            className="w-full mt-4"
+          >
+            {isLoadingInsight ? (
+              <><Spinner className="mr-2" /> Generating Insight</>
+            ) : (
+              'Get AI Health Insight'
+            )}
+          </Button>
+        )}
       </div>
     );
   }
@@ -139,6 +192,30 @@ const HealthDataChart: React.FC = () => {
               </div>
             </CardContent>
           </Card>
+          
+          {aiInsight && (
+            <Card className="mt-4">
+              <CardHeader>
+                <CardTitle className="text-emerald-800">AI Health Insight</CardTitle>
+                <CardDescription>Personalized analysis of your symptoms</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-600">{aiInsight}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          <Button 
+            onClick={generateAIInsight} 
+            disabled={isLoadingInsight}
+            className="w-full mt-4"
+          >
+            {isLoadingInsight ? (
+              <><Spinner className="mr-2" /> Generating Insight</>
+            ) : (
+              'Get AI Health Insight'
+            )}
+          </Button>
         </div>
       );
     }
@@ -164,6 +241,30 @@ const HealthDataChart: React.FC = () => {
               </div>
             </CardContent>
           </Card>
+          
+          {aiInsight && (
+            <Card className="mt-4">
+              <CardHeader>
+                <CardTitle className="text-emerald-800">AI Health Insight</CardTitle>
+                <CardDescription>Personalized analysis for {disease.name}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-600">{aiInsight}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          <Button 
+            onClick={generateAIInsight} 
+            disabled={isLoadingInsight}
+            className="w-full mt-4"
+          >
+            {isLoadingInsight ? (
+              <><Spinner className="mr-2" /> Generating Insight</>
+            ) : (
+              'Get AI Health Insight'
+            )}
+          </Button>
         </div>
       );
     }
@@ -208,6 +309,30 @@ const HealthDataChart: React.FC = () => {
               </div>
             </CardContent>
           </Card>
+          
+          {aiInsight && (
+            <Card className="mt-4">
+              <CardHeader>
+                <CardTitle className="text-emerald-800">AI Health Insight</CardTitle>
+                <CardDescription>Medication analysis for {disease.name}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-600">{aiInsight}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          <Button 
+            onClick={generateAIInsight} 
+            disabled={isLoadingInsight}
+            className="w-full mt-4"
+          >
+            {isLoadingInsight ? (
+              <><Spinner className="mr-2" /> Generating Insight</>
+            ) : (
+              'Get AI Health Insight'
+            )}
+          </Button>
         </div>
       );
     }
@@ -257,6 +382,30 @@ const HealthDataChart: React.FC = () => {
               </div>
             </CardContent>
           </Card>
+          
+          {aiInsight && (
+            <Card className="mt-4">
+              <CardHeader>
+                <CardTitle className="text-emerald-800">AI Health Insight</CardTitle>
+                <CardDescription>Specialist recommendations for {disease.name}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-600">{aiInsight}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          <Button 
+            onClick={generateAIInsight} 
+            disabled={isLoadingInsight}
+            className="w-full mt-4"
+          >
+            {isLoadingInsight ? (
+              <><Spinner className="mr-2" /> Generating Insight</>
+            ) : (
+              'Get AI Health Insight'
+            )}
+          </Button>
         </div>
       );
     }
