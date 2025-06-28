@@ -1,19 +1,43 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { useHealthBot } from '@/context/HealthBotContext';
 import { ChartContainer } from '@/components/ui/chart';
 import { PieChart, Pie, Cell, Legend, Tooltip } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { Brain, Loader2 } from 'lucide-react';
 
 const HealthDataChart: React.FC = () => {
   const { state, viewDoctorsList, selectDisease } = useHealthBot();
+  const [aiInsight, setAiInsight] = useState<string | null>(null);
+  const [loadingInsight, setLoadingInsight] = useState(false);
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+  
+  const generateAIInsight = async () => {
+    setLoadingInsight(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-health-insight', {
+        body: {
+          symptoms: state.selectedSymptoms,
+          diseases: state.analysis?.possibleDiseases || [],
+          selectedDisease: state.selectedDisease
+        }
+      });
+
+      if (error) throw error;
+      setAiInsight(data.insight);
+    } catch (error) {
+      console.error('Error generating AI insight:', error);
+      setAiInsight('Sorry, I couldn\'t generate insights at this time. Please try again later.');
+    } finally {
+      setLoadingInsight(false);
+    }
+  };
   
   // Welcome state when no symptoms are selected yet
   if (state.selectedSymptoms.length === 0) {
     return (
-      <Card>
+      <Card className="transition-all duration-500 ease-in-out">
         <CardHeader>
           <CardTitle className="text-emerald-800">Welcome to MediAssist Pro</CardTitle>
           <CardDescription>How are you feeling today?</CardDescription>
@@ -23,13 +47,13 @@ const HealthDataChart: React.FC = () => {
             <img 
               src="https://cdn-icons-png.flaticon.com/512/2038/2038738.png" 
               alt="Health Assistant" 
-              className="w-32 h-32 mx-auto mb-4 opacity-60"
+              className="w-32 h-32 mx-auto mb-4 opacity-60 transition-opacity duration-300"
             />
             <p className="text-muted-foreground mb-2">
               Please select your symptoms from the left panel.
             </p>
             <p className="text-xs text-muted-foreground">
-              I'll help analyze your symptoms and provide recommendations.
+              I'll help analyze your symptoms and provide AI-powered recommendations.
             </p>
           </div>
         </CardContent>
@@ -56,7 +80,7 @@ const HealthDataChart: React.FC = () => {
     
     return (
       <div className="space-y-4">
-        <Card>
+        <Card className="transition-all duration-500 ease-in-out">
           <CardHeader>
             <CardTitle className="text-emerald-800">Symptom Categories</CardTitle>
             <CardDescription>Distribution of your selected symptoms</CardDescription>
@@ -73,6 +97,8 @@ const HealthDataChart: React.FC = () => {
                   fill="#8884d8"
                   dataKey="value"
                   label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  animationBegin={0}
+                  animationDuration={800}
                 >
                   {data.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -82,8 +108,46 @@ const HealthDataChart: React.FC = () => {
                 <Tooltip />
               </PieChart>
             </ChartContainer>
+            
+            <div className="mt-4 flex justify-center">
+              <Button 
+                onClick={generateAIInsight}
+                disabled={loadingInsight}
+                className="bg-emerald-600 hover:bg-emerald-700 transition-colors duration-200"
+              >
+                {loadingInsight ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating Insights...
+                  </>
+                ) : (
+                  <>
+                    <Brain className="mr-2 h-4 w-4" />
+                    Get AI Health Insights
+                  </>
+                )}
+              </Button>
+            </div>
           </CardContent>
         </Card>
+
+        {aiInsight && (
+          <Card className="transition-all duration-500 ease-in-out transform animate-in slide-in-from-bottom-4">
+            <CardHeader>
+              <CardTitle className="text-emerald-800 flex items-center">
+                <Brain className="mr-2 h-5 w-5" />
+                AI Health Insights
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="prose prose-sm max-w-none text-gray-700">
+                {aiInsight.split('\n').map((paragraph, index) => (
+                  <p key={index} className="mb-2 last:mb-0">{paragraph}</p>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     );
   }
@@ -96,7 +160,7 @@ const HealthDataChart: React.FC = () => {
     if (!state.selectedDisease) {
       return (
         <div className="space-y-4">
-          <Card>
+          <Card className="transition-all duration-500 ease-in-out">
             <CardHeader>
               <CardTitle className="text-emerald-800">Health Analysis</CardTitle>
               <CardDescription>Possible conditions based on your symptoms</CardDescription>
@@ -106,7 +170,7 @@ const HealthDataChart: React.FC = () => {
                 {possibleDiseases.map((disease) => (
                   <div 
                     key={disease.id} 
-                    className="p-3 rounded-lg border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors cursor-pointer"
+                    className="p-3 rounded-lg border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-all duration-200 cursor-pointer transform hover:scale-[1.02]"
                     onClick={() => selectDisease(disease)}
                   >
                     <div className="flex justify-between items-center mb-2">
@@ -122,7 +186,7 @@ const HealthDataChart: React.FC = () => {
                       <div className="flex items-center gap-1">
                         <div className="w-full bg-gray-200 rounded-full h-1.5">
                           <div 
-                            className="bg-emerald-600 h-1.5 rounded-full" 
+                            className="bg-emerald-600 h-1.5 rounded-full transition-all duration-300" 
                             style={{ width: `${disease.matchPercentage || 50}%` }}
                           ></div>
                         </div>
@@ -133,12 +197,50 @@ const HealthDataChart: React.FC = () => {
                 ))}
               </div>
               
+              <div className="mt-4 flex justify-center">
+                <Button 
+                  onClick={generateAIInsight}
+                  disabled={loadingInsight}
+                  className="bg-emerald-600 hover:bg-emerald-700 transition-colors duration-200"
+                >
+                  {loadingInsight ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating Insights...
+                    </>
+                  ) : (
+                    <>
+                      <Brain className="mr-2 h-4 w-4" />
+                      Get AI Insights on Analysis
+                    </>
+                  )}
+                </Button>
+              </div>
+              
               <div className="mt-4 text-xs text-gray-500 border-t border-gray-100 pt-2">
                 <p className="font-medium text-emerald-700">IMPORTANT:</p>
                 <p>This analysis is not a medical diagnosis. Please consult with a healthcare professional.</p>
               </div>
             </CardContent>
           </Card>
+
+          {aiInsight && (
+            <Card className="transition-all duration-500 ease-in-out transform animate-in slide-in-from-bottom-4">
+              <CardHeader>
+                <CardTitle className="text-emerald-800 flex items-center">
+                  <Brain className="mr-2 h-5 w-5" />
+                  AI Health Insights
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="prose prose-sm max-w-none text-gray-700">
+                  {aiInsight.split('\n').map((paragraph, index) => (
+                    <p key={index} className="mb-2 last:mb-0">{paragraph}</p>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       );
     }
@@ -149,7 +251,7 @@ const HealthDataChart: React.FC = () => {
       
       return (
         <div className="space-y-4">
-          <Card>
+          <Card className="transition-all duration-500 ease-in-out">
             <CardHeader>
               <CardTitle className="text-emerald-800">{disease.name}</CardTitle>
               <CardDescription>
@@ -159,11 +261,49 @@ const HealthDataChart: React.FC = () => {
             <CardContent>
               <p className="text-sm mb-4">{disease.description}</p>
               
+              <div className="flex justify-center mb-4">
+                <Button 
+                  onClick={generateAIInsight}
+                  disabled={loadingInsight}
+                  className="bg-emerald-600 hover:bg-emerald-700 transition-colors duration-200"
+                >
+                  {loadingInsight ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating Insights...
+                    </>
+                  ) : (
+                    <>
+                      <Brain className="mr-2 h-4 w-4" />
+                      Get AI Insights for {disease.name}
+                    </>
+                  )}
+                </Button>
+              </div>
+              
               <div className="mt-2 text-xs text-muted-foreground">
                 <p>Select "Yes" in the chat to view prescription details</p>
               </div>
             </CardContent>
           </Card>
+
+          {aiInsight && (
+            <Card className="transition-all duration-500 ease-in-out transform animate-in slide-in-from-bottom-4">
+              <CardHeader>
+                <CardTitle className="text-emerald-800 flex items-center">
+                  <Brain className="mr-2 h-5 w-5" />
+                  AI Insights for {disease.name}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="prose prose-sm max-w-none text-gray-700">
+                  {aiInsight.split('\n').map((paragraph, index) => (
+                    <p key={index} className="mb-2 last:mb-0">{paragraph}</p>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       );
     }
@@ -174,7 +314,7 @@ const HealthDataChart: React.FC = () => {
       
       return (
         <div className="space-y-4">
-          <Card>
+          <Card className="transition-all duration-500 ease-in-out">
             <CardHeader>
               <CardTitle className="text-emerald-800">Prescription for {disease.name}</CardTitle>
               <CardDescription>Recommended medications and dosages</CardDescription>
@@ -182,7 +322,7 @@ const HealthDataChart: React.FC = () => {
             <CardContent>
               <div className="space-y-4">
                 {disease.medications.map((med, index) => (
-                  <div key={index} className="p-3 bg-white rounded-lg border border-emerald-100 shadow-sm">
+                  <div key={index} className="p-3 bg-white rounded-lg border border-emerald-100 shadow-sm transition-all duration-200 hover:shadow-md">
                     <h3 className="font-medium text-emerald-800">{med.name}</h3>
                     <div className="mt-2 space-y-1 text-sm">
                       <p><span className="font-medium">Dosage:</span> {med.dosage}</p>
@@ -218,7 +358,7 @@ const HealthDataChart: React.FC = () => {
       
       return (
         <div className="space-y-4">
-          <Card>
+          <Card className="transition-all duration-500 ease-in-out">
             <CardHeader>
               <CardTitle className="text-emerald-800">Recommended Specialists</CardTitle>
               <CardDescription>{disease.specialist.title} specialists for {disease.name}</CardDescription>
@@ -228,7 +368,7 @@ const HealthDataChart: React.FC = () => {
               
               <div className="space-y-4">
                 {disease.specialist.recommendedDoctors.map((doctor) => (
-                  <div key={doctor.id} className="p-4 bg-white rounded-lg border border-emerald-100 shadow-sm">
+                  <div key={doctor.id} className="p-4 bg-white rounded-lg border border-emerald-100 shadow-sm transition-all duration-200 hover:shadow-md">
                     <div className="flex gap-3">
                       <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-100">
                         <img src={doctor.photoUrl} alt={doctor.name} className="w-full h-full object-cover" />
