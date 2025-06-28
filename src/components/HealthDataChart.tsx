@@ -6,8 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
-import { Brain, Loader2, MessageCircle } from 'lucide-react';
+import { Brain, Loader2, MessageCircle, AlertCircle } from 'lucide-react';
 import { symptoms } from '@/data/symptoms';
+import { useToast } from '@/hooks/use-toast';
 
 const HealthDataChart: React.FC = () => {
   const { state, viewDoctorsList, selectDisease } = useHealthBot();
@@ -15,30 +16,61 @@ const HealthDataChart: React.FC = () => {
   const [loadingInsight, setLoadingInsight] = useState(false);
   const [userMessage, setUserMessage] = useState('');
   const [showMessageInput, setShowMessageInput] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
   
   const generateAIInsight = async (customMessage?: string) => {
     setLoadingInsight(true);
+    setError(null);
+    
     try {
+      console.log('Generating AI insight with data:', {
+        symptoms: state.selectedSymptoms?.length || 0,
+        diseases: state.analysis?.possibleDiseases?.length || 0,
+        selectedDisease: state.selectedDisease?.name || 'None',
+        userMessage: customMessage || userMessage || 'None',
+        allSymptoms: symptoms?.length || 0
+      });
+
       const { data, error } = await supabase.functions.invoke('generate-health-insight', {
         body: {
-          symptoms: state.selectedSymptoms,
+          symptoms: state.selectedSymptoms || [],
           diseases: state.analysis?.possibleDiseases || [],
-          selectedDisease: state.selectedDisease,
-          userMessage: customMessage || userMessage,
-          allSymptoms: symptoms
+          selectedDisease: state.selectedDisease || null,
+          userMessage: customMessage || userMessage || null,
+          allSymptoms: symptoms || []
         }
       });
 
-      if (error) throw error;
-      setAiInsight(data.insight);
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw new Error(error.message || 'Failed to generate AI insight');
+      }
+
+      if (data?.insight) {
+        setAiInsight(data.insight);
+        toast({
+          title: "AI Insight Generated",
+          description: "MediAssist Pro has analyzed your health data.",
+        });
+      } else {
+        throw new Error('No insight received from AI');
+      }
+
       if (customMessage || userMessage) {
         setUserMessage('');
         setShowMessageInput(false);
       }
     } catch (error) {
       console.error('Error generating AI insight:', error);
-      setAiInsight('Sorry, I couldn\'t generate insights at this time. Please try again later.');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setError(errorMessage);
+      toast({
+        title: "Error",
+        description: `Failed to generate AI insight: ${errorMessage}`,
+        variant: "destructive",
+      });
     } finally {
       setLoadingInsight(false);
     }
@@ -56,7 +88,7 @@ const HealthDataChart: React.FC = () => {
       <Card className="transition-all duration-500 ease-in-out">
         <CardHeader>
           <CardTitle className="text-emerald-800">Welcome to MediAssist Pro</CardTitle>
-          <CardDescription>How are you feeling today?</CardDescription>
+          <CardDescription>Your AI-powered health assistant</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
@@ -66,17 +98,17 @@ const HealthDataChart: React.FC = () => {
               className="w-32 h-32 mx-auto mb-4 opacity-60 transition-opacity duration-300"
             />
             <p className="text-muted-foreground mb-2">
-              Please select your symptoms from the left panel.
+              Please select your symptoms from the left panel, or chat with me directly.
             </p>
-            <p className="text-xs text-muted-foreground">
-              I'll help analyze your symptoms and provide AI-powered recommendations.
+            <p className="text-xs text-muted-foreground mb-4">
+              I can help analyze symptoms, handle typos, and provide AI-powered health recommendations.
             </p>
             
-            <div className="mt-4">
+            <div className="space-y-3">
               <Button 
                 onClick={() => setShowMessageInput(!showMessageInput)}
                 variant="outline"
-                className="mb-3"
+                className="w-full"
               >
                 <MessageCircle className="mr-2 h-4 w-4" />
                 Chat with MediAssist Pro
@@ -85,7 +117,7 @@ const HealthDataChart: React.FC = () => {
               {showMessageInput && (
                 <div className="space-y-2">
                   <Input
-                    placeholder="Ask me anything about your health or introduce yourself..."
+                    placeholder="Hi! I'm MediAssist Pro. Tell me your name or describe your symptoms..."
                     value={userMessage}
                     onChange={(e) => setUserMessage(e.target.value)}
                     onKeyPress={handleMessageSubmit}
@@ -95,12 +127,12 @@ const HealthDataChart: React.FC = () => {
                     onClick={() => generateAIInsight()}
                     disabled={loadingInsight || !userMessage.trim()}
                     size="sm"
-                    className="bg-emerald-600 hover:bg-emerald-700"
+                    className="bg-emerald-600 hover:bg-emerald-700 w-full"
                   >
                     {loadingInsight ? (
                       <>
                         <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                        Processing...
+                        Analyzing...
                       </>
                     ) : (
                       'Send Message'
@@ -108,14 +140,39 @@ const HealthDataChart: React.FC = () => {
                   </Button>
                 </div>
               )}
+              
+              <Button 
+                onClick={() => generateAIInsight('Hello, what is your name?')}
+                disabled={loadingInsight}
+                variant="ghost"
+                size="sm"
+                className="w-full text-emerald-600"
+              >
+                {loadingInsight ? (
+                  <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                ) : (
+                  <Brain className="mr-2 h-3 w-3" />
+                )}
+                Get AI Welcome Message
+              </Button>
             </div>
           </div>
           
+          {error && (
+            <div className="mt-4 p-3 bg-red-50 rounded-lg border border-red-200 flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-red-700">
+                <p className="font-medium">Error generating AI insight:</p>
+                <p>{error}</p>
+              </div>
+            </div>
+          )}
+          
           {aiInsight && (
-            <div className="mt-4 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+            <div className="mt-4 p-4 bg-emerald-50 rounded-lg border border-emerald-200 animate-in slide-in-from-bottom-4">
               <h4 className="font-medium text-emerald-800 mb-2 flex items-center">
                 <Brain className="mr-2 h-4 w-4" />
-                MediAssist Pro Response
+                MediAssist Pro
               </h4>
               <div className="text-sm text-gray-700 whitespace-pre-wrap">
                 {aiInsight}
@@ -207,7 +264,7 @@ const HealthDataChart: React.FC = () => {
               {showMessageInput && (
                 <div className="space-y-2">
                   <Input
-                    placeholder="Ask specific questions about your symptoms..."
+                    placeholder="Ask specific questions about your symptoms or tell me about additional concerns..."
                     value={userMessage}
                     onChange={(e) => setUserMessage(e.target.value)}
                     onKeyPress={handleMessageSubmit}
@@ -222,7 +279,7 @@ const HealthDataChart: React.FC = () => {
                     {loadingInsight ? (
                       <>
                         <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                        Processing...
+                        Analyzing...
                       </>
                     ) : (
                       'Ask MediAssist Pro'
@@ -231,6 +288,16 @@ const HealthDataChart: React.FC = () => {
                 </div>
               )}
             </div>
+            
+            {error && (
+              <div className="mt-4 p-3 bg-red-50 rounded-lg border border-red-200 flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-red-700">
+                  <p className="font-medium">Error:</p>
+                  <p>{error}</p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -239,7 +306,7 @@ const HealthDataChart: React.FC = () => {
             <CardHeader>
               <CardTitle className="text-emerald-800 flex items-center">
                 <Brain className="mr-2 h-5 w-5" />
-                AI Health Insights
+                MediAssist Pro Analysis
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -345,7 +412,7 @@ const HealthDataChart: React.FC = () => {
                       {loadingInsight ? (
                         <>
                           <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                          Processing...
+                          Analyzing...
                         </>
                       ) : (
                         'Ask MediAssist Pro'
@@ -354,6 +421,16 @@ const HealthDataChart: React.FC = () => {
                   </div>
                 )}
               </div>
+              
+              {error && (
+                <div className="mt-4 p-3 bg-red-50 rounded-lg border border-red-200 flex items-start gap-2">
+                  <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-red-700">
+                    <p className="font-medium">Error:</p>
+                    <p>{error}</p>
+                  </div>
+                </div>
+              )}
               
               <div className="mt-4 text-xs text-gray-500 border-t border-gray-100 pt-2">
                 <p className="font-medium text-emerald-700">IMPORTANT:</p>
@@ -367,7 +444,7 @@ const HealthDataChart: React.FC = () => {
               <CardHeader>
                 <CardTitle className="text-emerald-800 flex items-center">
                   <Brain className="mr-2 h-5 w-5" />
-                  AI Health Insights
+                  MediAssist Pro Analysis
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -444,7 +521,7 @@ const HealthDataChart: React.FC = () => {
                       {loadingInsight ? (
                         <>
                           <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                          Processing...
+                          Analyzing...
                         </>
                       ) : (
                         'Ask About This Condition'
