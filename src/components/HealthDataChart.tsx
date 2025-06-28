@@ -4,33 +4,49 @@ import { ChartContainer } from '@/components/ui/chart';
 import { PieChart, Pie, Cell, Legend, Tooltip } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
-import { Brain, Loader2 } from 'lucide-react';
+import { Brain, Loader2, MessageCircle } from 'lucide-react';
+import { symptoms } from '@/data/symptoms';
 
 const HealthDataChart: React.FC = () => {
   const { state, viewDoctorsList, selectDisease } = useHealthBot();
   const [aiInsight, setAiInsight] = useState<string | null>(null);
   const [loadingInsight, setLoadingInsight] = useState(false);
+  const [userMessage, setUserMessage] = useState('');
+  const [showMessageInput, setShowMessageInput] = useState(false);
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
   
-  const generateAIInsight = async () => {
+  const generateAIInsight = async (customMessage?: string) => {
     setLoadingInsight(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-health-insight', {
         body: {
           symptoms: state.selectedSymptoms,
           diseases: state.analysis?.possibleDiseases || [],
-          selectedDisease: state.selectedDisease
+          selectedDisease: state.selectedDisease,
+          userMessage: customMessage || userMessage,
+          allSymptoms: symptoms
         }
       });
 
       if (error) throw error;
       setAiInsight(data.insight);
+      if (customMessage || userMessage) {
+        setUserMessage('');
+        setShowMessageInput(false);
+      }
     } catch (error) {
       console.error('Error generating AI insight:', error);
       setAiInsight('Sorry, I couldn\'t generate insights at this time. Please try again later.');
     } finally {
       setLoadingInsight(false);
+    }
+  };
+  
+  const handleMessageSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && userMessage.trim()) {
+      generateAIInsight();
     }
   };
   
@@ -55,7 +71,57 @@ const HealthDataChart: React.FC = () => {
             <p className="text-xs text-muted-foreground">
               I'll help analyze your symptoms and provide AI-powered recommendations.
             </p>
+            
+            <div className="mt-4">
+              <Button 
+                onClick={() => setShowMessageInput(!showMessageInput)}
+                variant="outline"
+                className="mb-3"
+              >
+                <MessageCircle className="mr-2 h-4 w-4" />
+                Chat with MediAssist Pro
+              </Button>
+              
+              {showMessageInput && (
+                <div className="space-y-2">
+                  <Input
+                    placeholder="Ask me anything about your health or introduce yourself..."
+                    value={userMessage}
+                    onChange={(e) => setUserMessage(e.target.value)}
+                    onKeyPress={handleMessageSubmit}
+                    className="text-sm"
+                  />
+                  <Button 
+                    onClick={() => generateAIInsight()}
+                    disabled={loadingInsight || !userMessage.trim()}
+                    size="sm"
+                    className="bg-emerald-600 hover:bg-emerald-700"
+                  >
+                    {loadingInsight ? (
+                      <>
+                        <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      'Send Message'
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
+          
+          {aiInsight && (
+            <div className="mt-4 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+              <h4 className="font-medium text-emerald-800 mb-2 flex items-center">
+                <Brain className="mr-2 h-4 w-4" />
+                MediAssist Pro Response
+              </h4>
+              <div className="text-sm text-gray-700 whitespace-pre-wrap">
+                {aiInsight}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     );
@@ -109,24 +175,61 @@ const HealthDataChart: React.FC = () => {
               </PieChart>
             </ChartContainer>
             
-            <div className="mt-4 flex justify-center">
-              <Button 
-                onClick={generateAIInsight}
-                disabled={loadingInsight}
-                className="bg-emerald-600 hover:bg-emerald-700 transition-colors duration-200"
-              >
-                {loadingInsight ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating Insights...
-                  </>
-                ) : (
-                  <>
-                    <Brain className="mr-2 h-4 w-4" />
-                    Get AI Health Insights
-                  </>
-                )}
-              </Button>
+            <div className="mt-4 flex flex-col gap-2">
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => generateAIInsight()}
+                  disabled={loadingInsight}
+                  className="bg-emerald-600 hover:bg-emerald-700 transition-colors duration-200 flex-1"
+                >
+                  {loadingInsight ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating Insights...
+                    </>
+                  ) : (
+                    <>
+                      <Brain className="mr-2 h-4 w-4" />
+                      Get AI Health Insights
+                    </>
+                  )}
+                </Button>
+                
+                <Button 
+                  onClick={() => setShowMessageInput(!showMessageInput)}
+                  variant="outline"
+                  disabled={loadingInsight}
+                >
+                  <MessageCircle className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              {showMessageInput && (
+                <div className="space-y-2">
+                  <Input
+                    placeholder="Ask specific questions about your symptoms..."
+                    value={userMessage}
+                    onChange={(e) => setUserMessage(e.target.value)}
+                    onKeyPress={handleMessageSubmit}
+                    className="text-sm"
+                  />
+                  <Button 
+                    onClick={() => generateAIInsight()}
+                    disabled={loadingInsight || !userMessage.trim()}
+                    size="sm"
+                    className="bg-emerald-600 hover:bg-emerald-700 w-full"
+                  >
+                    {loadingInsight ? (
+                      <>
+                        <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      'Ask MediAssist Pro'
+                    )}
+                  </Button>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -140,10 +243,8 @@ const HealthDataChart: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="prose prose-sm max-w-none text-gray-700">
-                {aiInsight.split('\n').map((paragraph, index) => (
-                  <p key={index} className="mb-2 last:mb-0">{paragraph}</p>
-                ))}
+              <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap">
+                {aiInsight}
               </div>
             </CardContent>
           </Card>
@@ -197,24 +298,61 @@ const HealthDataChart: React.FC = () => {
                 ))}
               </div>
               
-              <div className="mt-4 flex justify-center">
-                <Button 
-                  onClick={generateAIInsight}
-                  disabled={loadingInsight}
-                  className="bg-emerald-600 hover:bg-emerald-700 transition-colors duration-200"
-                >
-                  {loadingInsight ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Generating Insights...
-                    </>
-                  ) : (
-                    <>
-                      <Brain className="mr-2 h-4 w-4" />
-                      Get AI Insights on Analysis
-                    </>
-                  )}
-                </Button>
+              <div className="mt-4 flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => generateAIInsight()}
+                    disabled={loadingInsight}
+                    className="bg-emerald-600 hover:bg-emerald-700 transition-colors duration-200 flex-1"
+                  >
+                    {loadingInsight ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Generating Insights...
+                      </>
+                    ) : (
+                      <>
+                        <Brain className="mr-2 h-4 w-4" />
+                        Get AI Insights on Analysis
+                      </>
+                    )}
+                  </Button>
+                  
+                  <Button 
+                    onClick={() => setShowMessageInput(!showMessageInput)}
+                    variant="outline"
+                    disabled={loadingInsight}
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                {showMessageInput && (
+                  <div className="space-y-2">
+                    <Input
+                      placeholder="Ask about these conditions or describe other symptoms..."
+                      value={userMessage}
+                      onChange={(e) => setUserMessage(e.target.value)}
+                      onKeyPress={handleMessageSubmit}
+                      className="text-sm"
+                    />
+                    <Button 
+                      onClick={() => generateAIInsight()}
+                      disabled={loadingInsight || !userMessage.trim()}
+                      size="sm"
+                      className="bg-emerald-600 hover:bg-emerald-700 w-full"
+                    >
+                      {loadingInsight ? (
+                        <>
+                          <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        'Ask MediAssist Pro'
+                      )}
+                    </Button>
+                  </div>
+                )}
               </div>
               
               <div className="mt-4 text-xs text-gray-500 border-t border-gray-100 pt-2">
@@ -233,10 +371,8 @@ const HealthDataChart: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="prose prose-sm max-w-none text-gray-700">
-                  {aiInsight.split('\n').map((paragraph, index) => (
-                    <p key={index} className="mb-2 last:mb-0">{paragraph}</p>
-                  ))}
+                <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap">
+                  {aiInsight}
                 </div>
               </CardContent>
             </Card>
@@ -261,24 +397,61 @@ const HealthDataChart: React.FC = () => {
             <CardContent>
               <p className="text-sm mb-4">{disease.description}</p>
               
-              <div className="flex justify-center mb-4">
-                <Button 
-                  onClick={generateAIInsight}
-                  disabled={loadingInsight}
-                  className="bg-emerald-600 hover:bg-emerald-700 transition-colors duration-200"
-                >
-                  {loadingInsight ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Generating Insights...
-                    </>
-                  ) : (
-                    <>
-                      <Brain className="mr-2 h-4 w-4" />
-                      Get AI Insights for {disease.name}
-                    </>
-                  )}
-                </Button>
+              <div className="flex flex-col gap-2 mb-4">
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => generateAIInsight()}
+                    disabled={loadingInsight}
+                    className="bg-emerald-600 hover:bg-emerald-700 transition-colors duration-200 flex-1"
+                  >
+                    {loadingInsight ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Generating Insights...
+                      </>
+                    ) : (
+                      <>
+                        <Brain className="mr-2 h-4 w-4" />
+                        Get AI Insights for {disease.name}
+                      </>
+                    )}
+                  </Button>
+                  
+                  <Button 
+                    onClick={() => setShowMessageInput(!showMessageInput)}
+                    variant="outline"
+                    disabled={loadingInsight}
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                {showMessageInput && (
+                  <div className="space-y-2">
+                    <Input
+                      placeholder={`Ask specific questions about ${disease.name}...`}
+                      value={userMessage}
+                      onChange={(e) => setUserMessage(e.target.value)}
+                      onKeyPress={handleMessageSubmit}
+                      className="text-sm"
+                    />
+                    <Button 
+                      onClick={() => generateAIInsight()}
+                      disabled={loadingInsight || !userMessage.trim()}
+                      size="sm"
+                      className="bg-emerald-600 hover:bg-emerald-700 w-full"
+                    >
+                      {loadingInsight ? (
+                        <>
+                          <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        'Ask About This Condition'
+                      )}
+                    </Button>
+                  </div>
+                )}
               </div>
               
               <div className="mt-2 text-xs text-muted-foreground">
@@ -296,10 +469,8 @@ const HealthDataChart: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="prose prose-sm max-w-none text-gray-700">
-                  {aiInsight.split('\n').map((paragraph, index) => (
-                    <p key={index} className="mb-2 last:mb-0">{paragraph}</p>
-                  ))}
+                <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap">
+                  {aiInsight}
                 </div>
               </CardContent>
             </Card>

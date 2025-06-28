@@ -16,45 +16,112 @@ serve(async (req) => {
   }
 
   try {
-    const { symptoms, diseases, selectedDisease } = await req.json();
+    const { symptoms, diseases, selectedDisease, userMessage, allSymptoms } = await req.json();
     
-    console.log('Generating health insight for:', { symptoms: symptoms?.length, diseases: diseases?.length, selectedDisease: selectedDisease?.name });
+    console.log('Generating enhanced health insight for:', { 
+      symptoms: symptoms?.length, 
+      diseases: diseases?.length, 
+      selectedDisease: selectedDisease?.name,
+      userMessage: userMessage ? 'User message provided' : 'No user message',
+      allSymptoms: allSymptoms?.length
+    });
 
     let prompt = '';
     
-    if (selectedDisease) {
-      prompt = `As a medical AI assistant, provide helpful insights about ${selectedDisease.name}. 
-      The patient has these symptoms: ${symptoms.map(s => s.name).join(', ')}.
-      
-      Please provide:
-      1. A brief explanation of how these symptoms relate to ${selectedDisease.name}
-      2. General lifestyle recommendations
-      3. When to seek immediate medical attention
-      4. Important reminders about professional medical care
-      
-      Keep the response concise, empathetic, and always emphasize consulting healthcare professionals.`;
+    // Handle conversational elements and typos
+    if (userMessage) {
+      const conversationalPrompt = `You are MediAssist Pro, a helpful medical AI assistant. 
+
+Available symptoms database: ${allSymptoms ? allSymptoms.map(s => `${s.name} (${s.category})`).join(', ') : 'Not provided'}
+
+User message: "${userMessage}"
+
+Instructions:
+1. If the user asks for your name or introduces themselves, respond warmly as "MediAssist Pro" and ask about their symptoms
+2. If they mention symptoms with typos or variations, identify the correct symptoms from the database and acknowledge the correction
+3. If they mention unrelated topics, gently redirect to health concerns while being friendly
+4. Look for symptom keywords in their message and suggest matching symptoms from the database
+5. Be empathetic and professional, always emphasizing the need for professional medical care
+
+Current user symptoms: ${symptoms?.map(s => s.name).join(', ') || 'None selected'}
+
+Provide a helpful response that handles their input appropriately.`;
+
+      prompt = conversationalPrompt;
+    } else if (selectedDisease) {
+      // Enhanced disease-specific analysis using symptom database
+      const relatedSymptoms = allSymptoms ? allSymptoms.filter(s => 
+        selectedDisease.commonSymptoms.some(commonSymptom => 
+          s.name.toLowerCase().includes(commonSymptom.toLowerCase()) ||
+          commonSymptom.toLowerCase().includes(s.name.toLowerCase())
+        )
+      ) : [];
+
+      prompt = `As MediAssist Pro, provide comprehensive insights about ${selectedDisease.name}.
+
+Patient's reported symptoms: ${symptoms.map(s => `${s.name} (${s.category} category)`).join(', ')}
+
+Disease information:
+- Name: ${selectedDisease.name}
+- Description: ${selectedDisease.description}
+- Severity: ${selectedDisease.severity}
+- Common symptoms: ${selectedDisease.commonSymptoms.join(', ')}
+
+Related symptoms from database: ${relatedSymptoms.map(s => `${s.name} (${s.category})`).join(', ')}
+
+Please provide:
+1. How the patient's symptoms align with ${selectedDisease.name}
+2. Any additional symptoms they should watch for based on the database
+3. Explanation of symptom patterns and disease progression
+4. Lifestyle recommendations specific to this condition
+5. When to seek immediate medical attention
+6. Important reminders about professional medical care
+
+Be thorough but concise, empathetic, and always emphasize consulting healthcare professionals.`;
     } else if (diseases && diseases.length > 0) {
-      prompt = `As a medical AI assistant, analyze these possible conditions based on symptoms: ${symptoms.map(s => s.name).join(', ')}.
-      
-      Possible conditions: ${diseases.map(d => d.name).join(', ')}.
-      
-      Please provide:
-      1. General insights about these symptoms
-      2. Common patterns you notice
-      3. General wellness recommendations
-      4. Important reminders about seeking professional care
-      
-      Keep the response helpful, concise, and always emphasize consulting healthcare professionals.`;
+      // Enhanced general analysis with symptom database cross-referencing
+      const symptomCategories = symptoms ? [...new Set(symptoms.map(s => s.category))] : [];
+      const relatedSymptoms = allSymptoms ? allSymptoms.filter(s => 
+        symptomCategories.includes(s.category) && 
+        !symptoms.some(userSymptom => userSymptom.id === s.id)
+      ) : [];
+
+      prompt = `As MediAssist Pro, analyze these symptoms using the comprehensive symptom database.
+
+Patient's symptoms: ${symptoms.map(s => `${s.name} (${s.category} category)`).join(', ')}
+Symptom categories affected: ${symptomCategories.join(', ')}
+
+Possible conditions identified: ${diseases.map(d => `${d.name} (${d.matchPercentage}% match, ${d.severity} severity)`).join(', ')}
+
+Additional symptoms to consider from database: ${relatedSymptoms.slice(0, 10).map(s => `${s.name} (${s.category})`).join(', ')}
+
+Please provide:
+1. Analysis of symptom patterns and what they might indicate
+2. Questions about additional symptoms they should consider from the database
+3. How the possible conditions relate to their symptom categories
+4. General wellness recommendations based on affected body systems
+5. Red flag symptoms that require immediate attention
+6. Guidance on symptom monitoring and documentation
+
+Keep the response helpful, comprehensive, and always emphasize consulting healthcare professionals.`;
     } else {
-      prompt = `As a medical AI assistant, provide general health insights for someone experiencing these symptoms: ${symptoms.map(s => s.name).join(', ')}.
+      // Enhanced general symptom analysis
+      const symptomCategories = symptoms ? [...new Set(symptoms.map(s => s.category))] : [];
       
-      Please provide:
-      1. General information about these symptoms
-      2. Common causes or patterns
-      3. General wellness recommendations
-      4. When to seek medical attention
-      
-      Keep the response helpful and always emphasize consulting healthcare professionals.`;
+      prompt = `As MediAssist Pro, provide comprehensive analysis for these symptoms.
+
+Patient's symptoms: ${symptoms.map(s => `${s.name} (${s.category} category)`).join(', ')}
+Body systems affected: ${symptomCategories.join(', ')}
+
+Please provide:
+1. General information about these symptoms and affected body systems
+2. Common patterns and potential interconnections between symptoms
+3. Questions to help narrow down the diagnosis
+4. General wellness recommendations for the affected body systems
+5. When to seek different levels of medical attention (urgent vs routine)
+6. How to monitor and document symptoms effectively
+
+Be thorough, empathetic, and always emphasize professional medical consultation.`;
     }
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -68,12 +135,20 @@ serve(async (req) => {
         messages: [
           { 
             role: 'system', 
-            content: 'You are a helpful medical AI assistant. Always remind users that your advice is not a substitute for professional medical diagnosis and treatment. Be empathetic, informative, and encourage seeking professional medical care when appropriate.' 
+            content: `You are MediAssist Pro, an intelligent medical AI assistant with access to a comprehensive symptom database. You excel at:
+
+1. Symptom Analysis: Cross-referencing user symptoms with the database to provide accurate insights
+2. Typo Correction: Identifying misspelled symptoms and suggesting correct ones from the database
+3. Conversational Intelligence: Handling personal questions, names, and redirecting to health topics naturally
+4. Database Integration: Using the symptom database to suggest related symptoms and narrow down diagnoses
+5. Professional Guidance: Always emphasizing that your advice supplements but never replaces professional medical care
+
+Be empathetic, intelligent, and thorough. When users make typos in symptom names, gently correct them. When they ask personal questions or mention their name, respond warmly as MediAssist Pro. Always use the symptom database to provide comprehensive analysis.` 
           },
           { role: 'user', content: prompt }
         ],
         temperature: 0.7,
-        max_tokens: 500,
+        max_tokens: 800,
       }),
     });
 
@@ -84,7 +159,7 @@ serve(async (req) => {
     const data = await response.json();
     const insight = data.choices[0].message.content;
 
-    console.log('Generated health insight successfully');
+    console.log('Generated enhanced health insight successfully');
 
     return new Response(JSON.stringify({ insight }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
